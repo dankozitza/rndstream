@@ -74,12 +74,8 @@
 
 #include <csignal>
 #include <cstdlib>
-#include <dirent.h>
-#include <fstream>
-#include <iomanip>
 #include <iostream>
 #include <sys/ioctl.h>
-#include <omp.h>
 #include "tools.hpp"
 #include "jconfig.hpp"
 #include "options.hpp"
@@ -145,12 +141,7 @@ int main(int argc, char *argv[]) {
       "Displays the configuration file.",
       "env [key]");
 
-   if (argc < 2)
-      cmd_str = "help";
-   else
-      cmd_str = argv[1];
-
-   for (int i = 2; i < argc; i++)
+   for (int i = 1; i < argc; i++)
       Argv.push_back(string(argv[i]));
 
    e = opt.evaluate(Argv);
@@ -167,6 +158,14 @@ int main(int argc, char *argv[]) {
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
       return 1;
+   }
+
+   if (Argv.size() == 0) {
+      cmd_str = "help";
+   }
+   else {
+      cmd_str = Argv[0];
+      Argv.erase(Argv.begin());
    }
 
    cmds.run(cmd_str, Argv);

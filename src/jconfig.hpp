@@ -23,10 +23,12 @@ class jconfig {
       string file_path;
 
       // types: int, uint, double, string, bool
+      // bool type toggles bval when it is set
 
       struct cfgval {
          string         type;
          bool           set;
+         bool           bval;
          vector<int>    vint;
          vector<string> vstr;
          vector<double> vdbl;
@@ -44,6 +46,11 @@ class jconfig {
       void define_uint(string key, unsigned int val);
       void define_dbl(string key, double val);
       void define_str(string key, string val);
+      void define_bool(string key, bool val);
+
+      void define_vint(string key, vector<int> val);
+      void define_vuint(string key, vector<unsigned int> val);
+      void define_vdbl(string key, vector<double> val);
       void define_vstr(string key, vector<string> val);
 
       //int  get_i(string key);

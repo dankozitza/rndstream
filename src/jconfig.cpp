@@ -6,13 +6,9 @@
 
 #include "jconfig.hpp"
 
-//unordered_map<string, cfgval> m;
-//string m_FL;
-
 jconfig::jconfig(string file) {
    file_path = file;
    mit = m.begin();
-   // read config from file
 }
 
 void jconfig::set_file_location(string fl) {
@@ -21,26 +17,48 @@ void jconfig::set_file_location(string fl) {
 }
 
 void jconfig::define_int(string key, int val) {
+   define_vint(key, {val});
+   return;
+}
+void jconfig::define_vint(string key, vector<int> val) {
    cfgval nv;
    nv.type = "int";
    nv.set = false;
-   nv.vstr.resize(1);
-   nv.vint.resize(1);
-   nv.vint[0] = val;
-   m[key] = nv;
-   return;
-}
-void jconfig::define_uint(string key, unsigned int val) {
-   cfgval nv;
-   nv.type = "uint";
-   nv.set = false;
-   nv.vstr.resize(1);
-   nv.vuint.resize(1);
-   nv.vuint[0] = val;
+   nv.vint = val;
    m[key] = nv;
    return;
 }
 
+void jconfig::define_uint(string key, unsigned int val) {
+   define_vuint(key, {val});
+   return;
+}
+void jconfig::define_vuint(string key, vector<unsigned int> val) {
+   cfgval nv;
+   nv.type = "uint";
+   nv.set = false;
+   nv.vuint = val;
+   m[key] = nv;
+   return;
+}
+
+void jconfig::define_dbl(string key, double val) {
+   define_vdbl(key, {val});
+   return;
+}
+void jconfig::define_vdbl(string key, vector<double> val) {
+   cfgval nv;
+   nv.type = "double";
+   nv.set = false;
+   nv.vdbl = val;
+   m[key] = nv;
+   return;
+}
+
+void jconfig::define_str(string key, string val) {
+   define_vstr(key, {val});
+   return;
+}
 void jconfig::define_vstr(string key, vector<string> val) {
    cfgval nv;
    nv.type = "string";
@@ -50,19 +68,12 @@ void jconfig::define_vstr(string key, vector<string> val) {
    return;
 }
 
-void jconfig::define_dbl(string key, double val) {
+void jconfig::define_bool(string key, bool val) {
    cfgval nv;
-   nv.type = "double";
+   nv.type = "bool";
    nv.set = false;
-   nv.vstr.resize(1);
-   nv.vdbl.resize(1);
-   nv.vdbl[0] = val;
+   nv.bval = val;
    m[key] = nv;
-   return;
-}
-
-void jconfig::define_str(string key, string val) {
-   define_vstr(key, {val});
    return;
 }
 
@@ -74,6 +85,12 @@ tools::Error jconfig::convert() {
 
       if (mit->second.set == false) {continue;} mit->second.set = false;
       if (mit->second.type == "string") {continue;}
+
+      if (mit->second.type == "bool") {
+         if (mit->second.bval) {mit->second.bval = false;}
+         else {mit->second.bval = true;}
+         continue;
+      }
 
       if (mit->second.type == "int") {
          mit->second.vint.resize(mit->second.vstr.size());
@@ -123,7 +140,10 @@ tools::Error jconfig::load() {
 
          Json::Value elmntv = *rjvit;
          if (!elmntv.isArray()) {
-            return "jconfig: Config value is not an array.";
+            if (elmntv.isBool()) {
+               m[key].bval = elmntv.asBool();
+            }
+            continue;
          }
 
          if (m[key].type == "int") {
@@ -167,49 +187,53 @@ tools::Error jconfig::save() {
 }
 
 string jconfig::getJSON() {
-   string r;
-   r = "{\n";
+   string r = "{\n";
    int keycnt = 0;
    for (mit = m.begin(); mit != m.end(); mit++) {
-      r += "\"" + mit->first + "\": [";
 
-      if (mit->second.type == "string") {
-         for (int i = 0; i < mit->second.vstr.size(); i++) {
-            r += "\"" + mit->second.vstr[i] + "\"";
-            if (i != mit->second.vstr.size()-1) {r += ", ";}
-         }
+      r += "\"" + mit->first + "\": ";
+
+      if (mit->second.type == "bool") {
+         if (mit->second.bval) {r += "true";}
+         else {r += "false";}
       }
-      if (mit->second.type == "int") {
-         for (int i = 0; i < mit->second.vint.size(); i++) {
-            char buf[100];
-            sprintf(buf, "%i", mit->second.vint[i]);
-            r += buf;
-            if (i != mit->second.vint.size()-1) {r += ", ";}
+      else {
+         r += "[";
+         if (mit->second.type == "string") {
+            for (int i = 0; i < mit->second.vstr.size(); i++) {
+               r += "\"" + mit->second.vstr[i] + "\"";
+               if (i != mit->second.vstr.size()-1) {r += ", ";}
+            }
          }
-      }
-      if (mit->second.type == "uint") {
-         for (int i = 0; i < mit->second.vuint.size(); i++) {
-            char buf[100];
-            sprintf(buf, "%u", mit->second.vuint[i]);
-            r += buf;
-            if (i != mit->second.vuint.size()-1) {r += ", ";}
+         if (mit->second.type == "int") {
+            for (int i = 0; i < mit->second.vint.size(); i++) {
+               char buf[100];
+               sprintf(buf, "%i", mit->second.vint[i]);
+               r += buf;
+               if (i != mit->second.vint.size()-1) {r += ", ";}
+            }
          }
-      }
-      if (mit->second.type == "double") {
-         for (int i = 0; i < mit->second.vdbl.size(); i++) {
-            char buf[100];
-            sprintf(buf, "%lf", mit->second.vdbl[i]);
-            r += buf;
-            if (i != mit->second.vdbl.size()-1) {r += ", ";}
+         if (mit->second.type == "uint") {
+            for (int i = 0; i < mit->second.vuint.size(); i++) {
+               char buf[100];
+               sprintf(buf, "%u", mit->second.vuint[i]);
+               r += buf;
+               if (i != mit->second.vuint.size()-1) {r += ", ";}
+            }
          }
+         if (mit->second.type == "double") {
+            for (int i = 0; i < mit->second.vdbl.size(); i++) {
+               char buf[100];
+               sprintf(buf, "%lf", mit->second.vdbl[i]);
+               r += buf;
+               if (i != mit->second.vdbl.size()-1) {r += ", ";}
+            }
+         }
+         r += "]";
       }
 
-      r += "]";
-      if (keycnt != m.size() - 1) {
-         r += ",\n";
-      }
-      else {r+= "\n";}
-
+      if (keycnt != m.size() - 1) {r += ",\n";}
+      else {r += "\n";}
       keycnt++;
    }
    r += "}";
