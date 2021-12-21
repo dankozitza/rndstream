@@ -50,27 +50,19 @@ void jconfig::define_vstr(string key, vector<string> val) {
    return;
 }
 
+void jconfig::define_dbl(string key, double val) {
+   cfgval nv;
+   nv.type = "double";
+   nv.set = false;
+   nv.vstr.resize(1);
+   nv.vdbl.resize(1);
+   nv.vdbl[0] = val;
+   m[key] = nv;
+   return;
+}
+
 void jconfig::define_str(string key, string val) {
    define_vstr(key, {val});
-   return;
-}
-
-void jconfig::set(string key, vector<string>& val) {
-   cfgval nv;
-   nv.type = "string";
-   nv.set = true;
-   m[key] = nv;
-   m[key].vstr = val;
-   return;
-}
-
-void jconfig::set(string key, unsigned int val) {
-   cfgval nv;
-   nv.type = "uint";
-   nv.set = true;
-   nv.vuint.resize(1);
-   nv.vuint[0] = val;
-   m[key] = nv;
    return;
 }
 
@@ -89,6 +81,9 @@ tools::Error jconfig::convert() {
       if (mit->second.type == "uint") {
          mit->second.vuint.resize(mit->second.vstr.size());
       }
+      if (mit->second.type == "double") {
+         mit->second.vdbl.resize(mit->second.vstr.size());
+      }
 
       for (int i = 0; i < mit->second.vstr.size(); i++) {
          e = load_json_value_from_string(jv, mit->second.vstr[i]);
@@ -100,6 +95,10 @@ tools::Error jconfig::convert() {
          if (mit->second.type == "uint") {
             if (!jv.isUInt()) {return "jconfig: Wrong type. Need uint.";}
             mit->second.vuint[i] = jv.asUInt();
+         }
+         if (mit->second.type == "double") {
+            if (!jv.isDouble()) {return "jconfig: Wrong type. Need double.";}
+            mit->second.vdbl[i] = jv.asDouble();
          }
       }
    }
@@ -140,11 +139,21 @@ tools::Error jconfig::load() {
          if (m[key].type == "uint") {
             m[key].vuint.resize(elmntv.size());
 
-            for (uint i = 0; i < elmntv.size(); i++) {
+            for (int i = 0; i < elmntv.size(); i++) {
                if (!elmntv[i].isUInt()) {
                   return "jconfig: Config value is not an uint.";
                }
                m[key].vuint[i] = elmntv[i].asUInt();
+            }
+         }
+         if (m[key].type == "double") {
+            m[key].vdbl.resize(elmntv.size());
+
+            for (int i = 0; i < elmntv.size(); i++) {
+               if (!elmntv[i].isDouble()) {
+                  return "jconfig: Config value is not a double.";
+               }
+               m[key].vdbl[i] = elmntv[i].asDouble();
             }
          }
       }
@@ -184,6 +193,14 @@ string jconfig::getJSON() {
             sprintf(buf, "%u", mit->second.vuint[i]);
             r += buf;
             if (i != mit->second.vuint.size()-1) {r += ", ";}
+         }
+      }
+      if (mit->second.type == "double") {
+         for (int i = 0; i < mit->second.vdbl.size(); i++) {
+            char buf[100];
+            sprintf(buf, "%lf", mit->second.vdbl[i]);
+            r += buf;
+            if (i != mit->second.vdbl.size()-1) {r += ", ";}
          }
       }
 

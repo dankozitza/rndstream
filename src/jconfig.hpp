@@ -42,10 +42,9 @@ class jconfig {
 
       void define_int(string key, int val);
       void define_uint(string key, unsigned int val);
+      void define_dbl(string key, double val);
       void define_str(string key, string val);
       void define_vstr(string key, vector<string> val);
-      void set(string key, unsigned int val);
-      void set(string key, vector<string>& val);
 
       //int  get_i(string key);
       //void get(vector<int>& rval);

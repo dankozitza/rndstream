@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
    ioctl(0, TIOCGWINSZ, &ws);
 
    cfg.define_uint("opt_s", time(NULL));
-   cfg.define_uint("opt_l", 1);
-   cfg.define_uint("opt_w", 30);
+   cfg.define_uint("opt_l", ws.ws_row);
+   cfg.define_uint("opt_w", ws.ws_col);
 
    e = cfg.load();
    if (e != NULL) {
@@ -158,7 +158,6 @@ int main(int argc, char *argv[]) {
       cout << pn << ": Error: " << e << endl;
       return 1;
    }
-
    e = cfg.convert();
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
