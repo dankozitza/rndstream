@@ -43,6 +43,7 @@ namespace tools {
          vector<string>& contents,
          string prefix);
    Error read_file(string file_path, string& contents);
+   Error write_file(string file_path, string& contents);
 
    // strings.cpp
    string fold(int indent_width, int max_line_width, string s);

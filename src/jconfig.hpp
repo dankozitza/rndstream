@@ -6,8 +6,8 @@
 // Created by Daniel Kozitza
 //
 
-#ifndef _RNDZ_JCONFIG
-#define _RNDZ_JCONFIG
+#ifndef _JCONFIG
+#define _JCONFIG
 
 #include <string>
 #include <vector>
@@ -22,24 +22,39 @@ class jconfig {
 
       string file_path;
 
+      // types: int, uint, double, string, bool
+
       struct cfgval {
          string         type;
          bool           set;
-         string         sval;
-         unsigned int   uival;
+         vector<int>    vint;
+         vector<string> vstr;
+         vector<double> vdbl;
+         vector<unsigned int> vuint;
       };
 
-   //double         dval;
-   //vector<cfgval> vval;
-   //unordered_map<string, cfgval> mval;
-
       unordered_map<string, cfgval> m;
+      unordered_map<string, cfgval>::iterator mit;
 
       jconfig(string file);
 
       void set_file_location(string fl);
-      void set(string key, string val);
+
+      void define_int(string key, int val);
+      void define_uint(string key, unsigned int val);
+      void define_str(string key, string val);
+      void define_vstr(string key, vector<string> val);
       void set(string key, unsigned int val);
+      void set(string key, vector<string>& val);
+
+      //int  get_i(string key);
+      //void get(vector<int>& rval);
+
+      tools::Error convert();
+
+      tools::Error load();
+      tools::Error save();
+
       string getJSON();
 };
 

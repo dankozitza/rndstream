@@ -343,3 +343,16 @@ tools::Error tools::read_file(string file_path, string &contents) {
    fh.close();
    return NULL;
 }
+
+tools::Error tools::write_file(string file_path, string &contents) {
+   ofstream fh;
+   fh.open(file_path.c_str(), ofstream::out);
+   if (!fh.is_open()) {
+      return errorf(
+            "tools::write_file: couldn't open %s.\n", file_path.c_str());
+   }
+
+   fh.write(contents.c_str(), contents.size());
+   fh.close();
+   return NULL;
+}

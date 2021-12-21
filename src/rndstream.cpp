@@ -34,15 +34,11 @@
 //
 //     Use json file /etc/rndstream.json to configure.
 //
-//  build rand substitute that generates true random values.
-//  reads output of call to rand and makes call to srand based on that.
-//  can be configured to use time or seed-gen app
-//
 //  multiple rand functions
 //
-//  grand - filters output of rand by calling srand when finding 'bad' numbers
 //  crand - re-seeds every n calls
 //  qrand - makes frequent calls to srand
+//  grand - filters output of rand by calling srand when finding 'bad' numbers
 //  mrand - keeps record of seeds and calls to rand. has accessible json index.
 //  lrand - uses dual calls to rand to produce long ints.
 //
@@ -73,10 +69,6 @@
 //    return rv1;
 //  }
 //
-//  brand
-//
-//     Substitute for rand that re-seeds itself using time after n calls.
-//
 // Created by Daniel Kozitza
 //
 
@@ -99,28 +91,44 @@ using namespace tools;
 typedef map<string, string>::iterator map_iter;
 
 void cmd_set(vector<string>& argv);
-void cmd_get(vector<string>& argv);
-void cnt();
-void env();
+void cmd_env();
 
-jconfig cfg("~/.rndstream.json");
+string  pn;
+jconfig cfg("rndstream.json");
 
 int main(int argc, char *argv[]) {
    vector<string> Argv(0);
    string         cmd_str;
    options        opt;
+   Error          e;
+   pn = argv[0];
 
    signal(SIGINT, signals_callback_handler);
 
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
-   cfg.set("opt_w", 40);
+   cfg.define_uint("opt_s", time(NULL));
+   cfg.define_uint("opt_l", 1);
+   cfg.define_uint("opt_w", 30);
 
-   //opt.handle('w', cfg.m["opt_w"].set, cfg.m["opt_w"].sval);
+   e = cfg.load();
+   if (e != NULL) {
+      cout << pn << ": Making jconfig file '" << cfg.file_path;
+      cout << "'.\n";
+      e = cfg.save();
+      if (e != NULL) {
+         cout << pn << ": Error: " << e << endl;
+         return 1;
+      }
+   }
+
+   opt.handle('s', cfg.m["opt_s"].set, cfg.m["opt_s"].vstr);
+   opt.handle('l', cfg.m["opt_l"].set, cfg.m["opt_l"].vstr);
+   opt.handle('w', cfg.m["opt_w"].set, cfg.m["opt_w"].vstr);
 
    commands cmds;
-   cmds.set_program_name(string(argv[0]));
+   cmds.set_program_name(pn);
    cmds.set_max_line_width(ws.ws_col);
    cmds.set_cmds_help(
       "\n   rndstream is a utility that outputs random text.\n\n"
@@ -132,20 +140,10 @@ int main(int argc, char *argv[]) {
       "Set environment variables.",
       "set <key> <value>");
    cmds.handle(
-      "get",
-      cmd_get,
-      "Get environment variables.",
-      "get [key]");
-   cmds.handle(
       "env",
-      env,
-      "Displays the variables read from vfnmkrndstream.conf.",
-      "env");
-   cmds.handle(
-      "cnt",
-      cnt,
-      "Counts the number of lines in each of the source files.",
-      "cnt");
+      cmd_env,
+      "Displays the configuration file.",
+      "env [key]");
 
    if (argc < 2)
       cmd_str = "help";
@@ -155,10 +153,20 @@ int main(int argc, char *argv[]) {
    for (int i = 2; i < argc; i++)
       Argv.push_back(string(argv[i]));
 
-   Error e;
    e = opt.evaluate(Argv);
    if (e != NULL) {
-      cout << string(argv[0]) << ": ERROR: " << e << endl;
+      cout << pn << ": Error: " << e << endl;
+      return 1;
+   }
+
+   e = cfg.convert();
+   if (e != NULL) {
+      cout << pn << ": Error: " << e << endl;
+      return 1;
+   }
+   e = cfg.save();
+   if (e != NULL) {
+      cout << pn << ": Error: " << e << endl;
       return 1;
    }
 
@@ -172,108 +180,7 @@ void cmd_set(vector<string>& argv) {
    return;
 }
 
-void cmd_get(vector<string>& argv) {
-   
+void cmd_env() {
+   cout << cfg.file_path << ":\n" << cfg.getJSON() << "\n";
    return;
-}
-
-//void runtime(vector<string>& argv) {
-//   double start, end;
-//   vector<string> empty_v;
-//   map<string, string> vfnconf;
-//   require(get_vfnmkrndstream_conf(vfnconf));
-//
-//   string system_call = "./";
-//   system_call += vfnconf["name"];
-//   for (int i = 0; i < argv.size(); i++)
-//      system_call += " \"" + argv[i] + "\"";
-//   cout << "rndstream::runtime: calling `" << system_call << "`.\n";
-//
-//   start = omp_get_wtime();
-//   system(system_call.c_str());
-//   end = omp_get_wtime();
-//   
-//   cout << "rndstream::runtime: execution time (seconds): `";
-//   cout << end - start << "`.\n";
-//}
-
-void env() {
-   map<string, string> vfnconf;
-   cout << "rndstream::env: reading vfnmkrndstream.conf." << endl;
-   require(get_vfnmkmc_conf(vfnconf));
-
-   cout << "\nvfnmkmc.conf:\n\n";
-   //for (const auto item : vfnconf) {
-   //   cout << item.first << ": " << item.second << "\n";
-   //
-   //}
-
-   for (map_iter it = vfnconf.begin(); it != vfnconf.end(); ++it)
-      cout << it->first << ": " << it->second << "\n";
-
-   cout << "\n";
-}
-
-void cnt() {
-   map<string, string> vfnconf;
-   vector<string> contents(0);
-   unsigned int total_lines = 0;
-   string src_dir;
-
-   if (get_vfnmkmc_conf(vfnconf))
-      src_dir = vfnconf["src_directory"];
-   else
-      src_dir = ".";
-
-   if (!list_dir_r(src_dir, contents)) {
-      cerr << "rndstream::cnt: vfnmkrndstream src_directory `" + src_dir;
-      cerr << "` does not exist\n";
-      return;
-   }
-
-   vector<string> new_contents(0);
-   for (int i = 0; i < contents.size(); ++i) {
-      if (pmatches(contents[i], "(\\.cpp|\\.c|\\.hpp|\\.h)$")) {
-         new_contents.push_back(contents[i]);
-      }
-   }
-   contents = new_contents;
-   new_contents.clear();
-
-   int longest = 0;
-   for (int i = 0; i < contents.size(); ++i) {
-      string fname = src_dir + "/" + contents[i];
-      if (fname.size() > longest)
-         longest = fname.size() + 1;
-   }
-
-   sorters::radix(contents);
-
-   ifstream fh;
-   for (int i = 0; i < contents.size(); ++i) {
-      string fname = src_dir + "/" + contents[i];
-
-      fh.open(fname.c_str(), ifstream::in);
-      if (!fh.is_open()) {
-         cout << "rndstream::cnt: could not open file: `" << fname << "`\n";
-         continue;
-      }
-
-      char c;
-      int file_lines = 0;
-      while (fh.peek() != EOF) {
-         fh.get(c);
-         if (c == '\n')
-            ++file_lines;
-      }
-      fh.close();
-      total_lines += file_lines;
-
-      fname += ":";
-      cout << left << setw(longest) << fname;
-      cout << " " << file_lines << endl;
-   }
-
-   cout << endl << left << setw(longest) << "total_loc:";
-   cout << " " << total_lines << "\n\n";
 }
