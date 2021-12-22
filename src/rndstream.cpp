@@ -96,6 +96,7 @@ int main(int argc, char *argv[]) {
    vector<string> Argv(0);
    string         cmd_str;
    options        opt;
+   commands       cmds;
    Error          e;
    pn = argv[0];
 
@@ -123,24 +124,6 @@ int main(int argc, char *argv[]) {
    opt.handle('l', cfg.m["opt_l"].set, cfg.m["opt_l"].vstr);
    opt.handle('w', cfg.m["opt_w"].set, cfg.m["opt_w"].vstr);
 
-   commands cmds;
-   cmds.set_program_name(pn);
-   cmds.set_max_line_width(ws.ws_col);
-   cmds.set_cmds_help(
-      "\n   rndstream is a utility that outputs random text.\n\n"
-      "Usage:\n\n   rndstream command [arguments]\n");
-
-   cmds.handle(
-      "set",
-      cmd_set,
-      "Set environment variables.",
-      "set <key> <value>");
-   cmds.handle(
-      "env",
-      cmd_env,
-      "Displays the configuration file.",
-      "env [key]");
-
    for (int i = 1; i < argc; i++)
       Argv.push_back(string(argv[i]));
 
@@ -167,6 +150,23 @@ int main(int argc, char *argv[]) {
       cmd_str = Argv[0];
       Argv.erase(Argv.begin());
    }
+
+   cmds.set_program_name(pn);
+   cmds.set_max_line_width(ws.ws_col);
+   cmds.set_cmds_help(
+      "\n   rndstream is a utility that outputs random text.\n\n"
+      "Usage:\n\n   rndstream command [arguments]\n");
+
+   cmds.handle(
+      "set",
+      cmd_set,
+      "Set environment variables.",
+      "set <key> <value>");
+   cmds.handle(
+      "env",
+      cmd_env,
+      "Displays the configuration file.",
+      "env [key]");
 
    cmds.run(cmd_str, Argv);
 
