@@ -77,6 +77,42 @@ void jconfig::define_bool(string key, bool val) {
    return;
 }
 
+int jconfig::get_int(string key) {
+   if (m[key].vint.size() < 1) {return 0;}
+   return m[key].vint[0];
+}
+vector<int> jconfig::get_vint(string key) {
+   return m[key].vint;
+}
+
+unsigned int jconfig::get_uint(string key) {
+   if (m[key].vuint.size() < 1) {return 0;}
+   return m[key].vuint[0];
+}
+vector<unsigned int> jconfig::get_vuint(string key) {
+   return m[key].vuint;
+}
+
+double jconfig::get_dbl(string key) {
+   if (m[key].vdbl.size() < 1) {return 0;}
+   return m[key].vdbl[0];
+}
+vector<double> jconfig::get_vdbl(string key) {
+   return m[key].vdbl;
+}
+
+string jconfig::get_str(string key) {
+   if (m[key].vstr.size() < 1) {return "";}
+   return m[key].vstr[0];
+}
+vector<string> jconfig::get_vstr(string key) {
+   return m[key].vstr;
+}
+
+bool jconfig::get_bool(string key) {
+   return m[key].bval;
+}
+
 tools::Error jconfig::convert() {
    tools::Error e = NULL;
    Json::Value jv;

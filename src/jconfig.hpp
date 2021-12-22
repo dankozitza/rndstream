@@ -1,7 +1,7 @@
 // 
 // jconfig.hpp
 //
-// Configuration structure for c++ applications.
+// Data structure used for program configuration.
 //
 // Created by Daniel Kozitza
 //
@@ -9,8 +9,6 @@
 #ifndef _JCONFIG
 #define _JCONFIG
 
-#include <string>
-#include <vector>
 #include <unordered_map>
 #include "tools.hpp"
 
@@ -23,7 +21,7 @@ class jconfig {
       string file_path;
 
       // types: int, uint, double, string, bool
-      // bool type toggles bval when it is set
+      // bool type has no arguments and toggles bval when it is set
 
       struct cfgval {
          string         type;
@@ -53,11 +51,18 @@ class jconfig {
       void define_vdbl(string key, vector<double> val);
       void define_vstr(string key, vector<string> val);
 
-      //int  get_i(string key);
-      //void get(vector<int>& rval);
+      int          get_int(string key);
+      double       get_dbl(string key);
+      string       get_str(string key);
+      bool         get_bool(string key);
+      unsigned int get_uint(string key);
+
+      vector<int>          get_vint(string key);
+      vector<unsigned int> get_vuint(string key);
+      vector<double>       get_vdbl(string key);
+      vector<string>       get_vstr(string key);
 
       tools::Error convert();
-
       tools::Error load();
       tools::Error save();
 
