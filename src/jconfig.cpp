@@ -25,6 +25,7 @@ void jconfig::define_vint(string key, vector<int> val) {
    nv.type = "int";
    nv.set = false;
    nv.vint = val;
+   nv.vstr.resize(val.size());
    m[key] = nv;
    return;
 }
@@ -38,6 +39,7 @@ void jconfig::define_vuint(string key, vector<unsigned int> val) {
    nv.type = "uint";
    nv.set = false;
    nv.vuint = val;
+   nv.vstr.resize(val.size());
    m[key] = nv;
    return;
 }
@@ -51,6 +53,7 @@ void jconfig::define_vdbl(string key, vector<double> val) {
    nv.type = "double";
    nv.set = false;
    nv.vdbl = val;
+   nv.vstr.resize(val.size());
    m[key] = nv;
    return;
 }

@@ -1,7 +1,7 @@
 //
 // rndstream.cpp
 //
-// Utility function that generates customizable random text.
+// Command line tool that generates customizable random text.
 //
 // Example:
 //
@@ -76,6 +76,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <sys/ioctl.h>
+#include <chrono>
+#include <thread>
 #include "tools.hpp"
 #include "jconfig.hpp"
 #include "options.hpp"
@@ -84,8 +86,8 @@
 
 using namespace tools;
 
-typedef map<string, string>::iterator map_iter;
-
+void cmd_gen(vector<string>& argv);
+void cmd_stream();
 void cmd_set(vector<string>& argv);
 void cmd_env();
 
@@ -108,6 +110,7 @@ int main(int argc, char *argv[]) {
    cfg.define_uint("opt_s", time(NULL));
    cfg.define_uint("opt_l", ws.ws_row);
    cfg.define_uint("opt_w", ws.ws_col);
+   cfg.define_dbl("opt_t", 0.5);
 
    e = cfg.load();
    if (e != NULL) {
@@ -123,6 +126,7 @@ int main(int argc, char *argv[]) {
    opt.handle('s', cfg.m["opt_s"].set, cfg.m["opt_s"].vstr);
    opt.handle('l', cfg.m["opt_l"].set, cfg.m["opt_l"].vstr);
    opt.handle('w', cfg.m["opt_w"].set, cfg.m["opt_w"].vstr);
+   opt.handle('t', cfg.m["opt_t"].set, cfg.m["opt_t"].vstr);
 
    for (int i = 1; i < argc; i++)
       Argv.push_back(string(argv[i]));
@@ -154,9 +158,14 @@ int main(int argc, char *argv[]) {
    cmds.set_program_name(pn);
    cmds.set_max_line_width(ws.ws_col);
    cmds.set_cmds_help(
-      "\n   rndstream is a utility that outputs random text.\n\n"
-      "Usage:\n\n   rndstream command [arguments]\n");
+      "\n   Rndstream generates customized random text.\n\n"
+      "Usage:\n\n   rndstream <command> [arguments]\n");
 
+   cmds.handle(
+      "gen",
+      cmd_gen,
+      "Generate random text.",
+      "gen <command> [-options]");
    cmds.handle(
       "set",
       cmd_set,
@@ -173,8 +182,62 @@ int main(int argc, char *argv[]) {
    return 0;
 }
 
-void cmd_set(vector<string>& argv) {
+void cmd_gen(vector<string>& argv) {
+   commands cmds2;
+   cmds2.set_program_name(pn + " gen");
+   string cmd2 = "help";
 
+   if (argv.size() > 0) {
+      cmd2 = argv[0];
+      argv.erase(argv.begin());
+   }
+
+   cmds2.set_cmds_help("\nUsage:\n\n   " + pn + " gen <command> [-options]\n");
+   cmds2.handle(
+         "stream",
+         cmd_stream,
+         "Generate a stream of random text and print to stdout.",
+         "stream [-options]");
+
+   cmds2.run(cmd2, argv);
+   return;
+}
+
+void cmd_stream() {
+
+   double wt = cfg.get_dbl("opt_t");
+   unsigned int ms = abs(wt * 1000);
+
+   while(true) {
+      for (unsigned int l = 0; l <= cfg.get_uint("opt_l"); l++) {
+         if (l > 0 && l == cfg.get_uint("opt_l")) {continue;}
+
+         for (unsigned int w = 0; w < cfg.get_uint("opt_w"); w++) {
+            cout << "*";
+         }
+
+         if (cfg.get_uint("opt_l") != 0) {cout << endl;}
+      }
+      cout.flush();
+
+      this_thread::sleep_for(chrono::milliseconds(ms));
+   }
+
+   cout << "wait time: " << wt << endl;
+   return;
+}
+
+void cmd_set(vector<string>& argv) {
+   if (argv.size() == 2) {
+      cfg.define_str(argv[0], argv[1]);
+      tools::Error e = cfg.save();
+      if (e != NULL) {
+         cout << e << endl;
+      }
+      else {
+         cout << cfg.getJSON() << endl;
+      }
+   }
    return;
 }
 
