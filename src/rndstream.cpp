@@ -107,10 +107,23 @@ int main(int argc, char *argv[]) {
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
-   cfg.define_uint("opt_s", time(NULL));
-   cfg.define_uint("opt_l", ws.ws_row);
-   cfg.define_uint("opt_w", ws.ws_col);
-   cfg.define_dbl("opt_t", 0.5);
+   cfg.define_uint("s", time(NULL));
+   cfg.define_uint("l", ws.ws_row);
+   cfg.define_uint("w", ws.ws_col);
+   cfg.define_str("o", " ~");
+   cfg.define_dbl("t", 0.5);
+   cfg.define_str("c", cfg.file_path);
+
+   opt.handle('s', cfg.m["s"].set, cfg.m["s"].vstr);
+   opt.handle('l', cfg.m["l"].set, cfg.m["l"].vstr);
+   opt.handle('w', cfg.m["w"].set, cfg.m["w"].vstr);
+   opt.handle('o', cfg.m["o"].set, cfg.m["o"].vstr);
+   opt.handle('t', cfg.m["t"].set, cfg.m["t"].vstr);
+
+   for (int i = 1; i < argc; i++)
+      Argv.push_back(string(argv[i]));
+
+
 
    e = cfg.load();
    if (e != NULL) {
@@ -123,24 +136,22 @@ int main(int argc, char *argv[]) {
       }
    }
 
-   opt.handle('s', cfg.m["opt_s"].set, cfg.m["opt_s"].vstr);
-   opt.handle('l', cfg.m["opt_l"].set, cfg.m["opt_l"].vstr);
-   opt.handle('w', cfg.m["opt_w"].set, cfg.m["opt_w"].vstr);
-   opt.handle('t', cfg.m["opt_t"].set, cfg.m["opt_t"].vstr);
-
-   for (int i = 1; i < argc; i++)
-      Argv.push_back(string(argv[i]));
-
    e = opt.evaluate(Argv);
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
       return 1;
    }
+
+   if (cfg.m["c"].set) {
+      cfg.file_path = cfg.get_str("c");
+   }
+
    e = cfg.convert();
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
       return 1;
    }
+
    e = cfg.save();
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
@@ -194,10 +205,10 @@ void cmd_gen(vector<string>& argv) {
 
    cmds2.set_cmds_help("\nUsage:\n\n   " + pn + " gen <command> [-options]\n");
    cmds2.handle(
-         "stream",
+         "str",
          cmd_stream,
          "Generate a stream of random text and print to stdout.",
-         "stream [-options]");
+         "str [-options]");
 
    cmds2.run(cmd2, argv);
    return;
@@ -205,18 +216,21 @@ void cmd_gen(vector<string>& argv) {
 
 void cmd_stream() {
 
-   double wt = cfg.get_dbl("opt_t");
+   srand(cfg.get_uint("s"));
+   double wt = cfg.get_dbl("t");
    unsigned int ms = abs(wt * 1000);
 
    while(true) {
-      for (unsigned int l = 0; l <= cfg.get_uint("opt_l"); l++) {
-         if (l > 0 && l == cfg.get_uint("opt_l")) {continue;}
+      for (unsigned int l = 0; l <= cfg.get_uint("l"); l++) {
+         if (l > 0 && l == cfg.get_uint("l")) {continue;}
 
-         for (unsigned int w = 0; w < cfg.get_uint("opt_w"); w++) {
-            cout << "*";
+         for (unsigned int w = 0; w < cfg.get_uint("w"); w++) {
+            cout << char(rand() 
+                  % (cfg.get_str("o")[1] - cfg.get_str("o")[0])
+                  + cfg.get_str("o")[0]);
          }
 
-         if (cfg.get_uint("opt_l") != 0) {cout << endl;}
+         if (cfg.get_uint("l") != 0) {cout << endl;}
       }
       cout.flush();
 

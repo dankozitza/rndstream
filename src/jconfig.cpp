@@ -185,6 +185,16 @@ tools::Error jconfig::load() {
             continue;
          }
 
+         if (m[key].type == "string") {
+            m[key].vstr.resize(elmntv.size());
+
+            for (int i = 0; i < elmntv.size(); i++) {
+               if (!elmntv[i].isString()) {
+                  return "jconfig: Config value is not a string.";
+               }
+               m[key].vstr[i] = elmntv[i].asString();
+            }
+         }
          if (m[key].type == "int") {
             m[key].vint.resize(elmntv.size());
 
