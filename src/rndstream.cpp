@@ -92,7 +92,7 @@ void cmd_set(vector<string>& argv);
 void cmd_env();
 
 string  pn;
-jconfig cfg("rndstream.json");
+jconfig cfg("/etc/rndstream.json");
 
 int main(int argc, char *argv[]) {
    vector<string> Argv(0);
@@ -114,6 +114,7 @@ int main(int argc, char *argv[]) {
    cfg.define_dbl("t", 0.5);
    cfg.define_str("c", cfg.file_path);
 
+   opt.handle('c', cfg.m["c"].set, cfg.m["c"].vstr);
    opt.handle('s', cfg.m["s"].set, cfg.m["s"].vstr);
    opt.handle('l', cfg.m["l"].set, cfg.m["l"].vstr);
    opt.handle('w', cfg.m["w"].set, cfg.m["w"].vstr);
@@ -122,8 +123,6 @@ int main(int argc, char *argv[]) {
 
    for (int i = 1; i < argc; i++)
       Argv.push_back(string(argv[i]));
-
-
 
    e = cfg.load();
    if (e != NULL) {
@@ -142,8 +141,18 @@ int main(int argc, char *argv[]) {
       return 1;
    }
 
-   if (cfg.m["c"].set) {
+   if (cfg.m["c"].set || cfg.file_path != cfg.get_str("c")) {
       cfg.file_path = cfg.get_str("c");
+      e = cfg.load();
+      if (e != NULL) {
+         cout << pn << ": Making jconfig file '" << cfg.file_path;
+         cout << "'.\n";
+         e = cfg.save();
+         if (e != NULL) {
+            cout << pn << ": Error: " << e << endl;
+            return 1;
+         }
+      }
    }
 
    e = cfg.convert();
