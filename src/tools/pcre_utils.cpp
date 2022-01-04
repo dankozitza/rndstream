@@ -56,8 +56,8 @@ bool tools::pmatches(
       }
    } catch (std::regex_error& e) {
      // Syntax error in the regular expression
-     cout << "tools::pcre_utils: Syntax error in regular expression `"
-          << str_re.c_str() << "`: " << e.what() << endl;
+     cout << "tools::pcre_utils: Syntax error in regular expression '"
+          << str_re.c_str() << "': " << e.what() << endl;
      return false;
    }
 
@@ -175,8 +175,8 @@ bool tools::replace_first(string &s, string str_re, string rpl) {
 
          if (m.size() - 2 <= result_parts[i].m_index) {
             cerr << "tools::replace_all: Number of variables in match regex: ";
-            cerr << "`" << str_re << "` does not match variable named in ";
-            cerr << "replacement string: `" << rpl << "`.\n";
+            cerr << "'" << str_re << "' does not match variable named in ";
+            cerr << "replacement string: '" << rpl << "'.\n";
             exit(1);
          }
 
@@ -260,8 +260,8 @@ size_t tools::replace_all(string &s, string str_re, string rpl) {
 
          if (m.size() - 2 <= result_parts[i].m_index) {
             cerr << "tools::replace_all: Number of variables in match regex: ";
-            cerr << "`" << str_re << "` does not match variable named in ";
-            cerr << "replacement string: `" << rpl << "`.\n";
+            cerr << "'" << str_re << "' does not match variable named in ";
+            cerr << "replacement string: '" << rpl << "'.\n";
             exit(1);
          }
 

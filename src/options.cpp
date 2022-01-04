@@ -94,7 +94,7 @@ tools::Error options::evaluate(vector<string>& arguments) {
             }
          }
          else {
-            cout << "options::evaluate: Invalid option `" << c << "`.\n";
+            cout << "options::evaluate: Invalid option '" << c << "'.\n";
          }
       }
    }

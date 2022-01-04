@@ -22,7 +22,7 @@ commands::commands() {
 // set_program_name
 // 
 // When this is set the commands object will act as if the command being
-// run is from the command line arguments of a program named `pn`.
+// run is from the command line arguments of a program named 'pn'.
 // 
 // If set two things will happen:
 //
@@ -63,7 +63,7 @@ void commands::set_max_line_width(int w) {
 //
 // This function is automatically called when the "help" command is run. If
 // argv is empty it will print the help message for the entire commands object,
-// `cmds_help`. This message is expected to explain what the situation is that
+// 'cmds_help'. This message is expected to explain what the situation is that
 // requires user input and should include it's own usage. After the help message
 // is printed a list of the available commands is printed.
 //
@@ -129,8 +129,8 @@ void commands::default_help(vector<string>& argv) {
                default_help(tmp);
             }
             else {
-               cout << "commands::default_help: Unknown command `";
-               cout << argv[i] << "`. Try '";
+               cout << "commands::default_help: Unknown command '";
+               cout << argv[i] << "'. Try '";
                if (program_name != "")
                   cout << program_name << " "; 
                cout << "help'.\n";
@@ -177,7 +177,7 @@ void commands::run(string cmd, vector<string>& arguments) {
          cmds[cmd].func_na();
    }
    else {
-      cout << "commands::run: Unknown command `" << cmd << "`. Try '";
+      cout << "commands::run: Unknown command '" << cmd << "'. Try '";
       if (program_name != "")
          cout << program_name << " ";
       cout << "help'.\n";

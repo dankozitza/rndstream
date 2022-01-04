@@ -55,7 +55,7 @@ vector<string> Targets;
 // in the targets vector.
 void destroy_targets() {
    for (const auto fname : Targets) {
-      cout << "tools::destroy_targets: removing `" << fname << "`\n";
+      cout << "tools::destroy_targets: removing '" << fname << "'\n";
       remove(fname.c_str());
    }
 }

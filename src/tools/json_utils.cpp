@@ -31,6 +31,6 @@ tools::Error tools::load_json_value_from_string(Json::Value& jv, const string& s
 
    return errorf(
          "Json::Reader::parse returned false! "
-         "tools::load_json_value_from_string: Error parsing string `%s`.",
+         "tools::load_json_value_from_string: Error parsing string '%s'.",
          s.c_str());
 }

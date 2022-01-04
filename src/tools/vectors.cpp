@@ -53,11 +53,11 @@ void tools::vectors_test() {
 
    cout << "enter command: ";
    cin >> v1;
-   cout << "vector size: `" << v1.size() << "`\n";
-   cout << "got vector: `" << v1 << "`\n\n";
+   cout << "vector size: '" << v1.size() << "'\n";
+   cout << "got vector: '" << v1 << "'\n\n";
 
    cout << "enter command: ";
    cin >> v1;
-   cout << "vector size: `" << v1.size() << "`\n";
-   cout << "got vector: `" << v1 << "`\n\n";
+   cout << "vector size: '" << v1.size() << "'\n";
+   cout << "got vector: '" << v1 << "'\n\n";
 }

@@ -164,7 +164,6 @@ int main(int argc, char *argv[]) {
    }
 
    if (cfg.get_btn("x")) {
-      if (cfg.is_set("x") != true) {cout << "x is not set!?\n";}
       cfg.m["l"].vuint[0] = ws.ws_row;
       cfg.m["w"].vuint[0] = ws.ws_col;
    }

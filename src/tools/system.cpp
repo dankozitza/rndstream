@@ -141,8 +141,8 @@ tools::Error tools::errorf(char const * format, ...) {
 //
 void tools::signals_callback_handler(int signum) {
 
-   cout << "\ntools::signals_callback_handler: caught signal `";
-   cout << signum << "`\n";
+   cout << "\ntools::signals_callback_handler: caught signal '";
+   cout << signum << "'\n";
 
    if (signum < 0 || signum > 15) {
       cout << "   signal number out of bounds!!!\n";
@@ -161,7 +161,7 @@ void tools::signals_callback_handler(int signum) {
 // signals
 //
 // replacement for signal that allows multiple callback handlers to be used for
-// each signal. If a callback handler supplied to signals calls `exit`, all
+// each signal. If a callback handler supplied to signals calls 'exit', all
 // uncalled handlers in the SigHandlers vector will not be called.
 // 
 // signal(SIGINT, signals_callback_handler) must be called for program to exit
@@ -183,7 +183,7 @@ bool tools::require(int sys_exit_val, string msg) {
       if (msg != "") {
          cout << msg << "\n";
       }
-      cout << "tools::require: got exit value `" << sys_exit_val << "`, ";
+      cout << "tools::require: got exit value '" << sys_exit_val << "', ";
       cout << "exiting.\n";
       exit(EXIT_FAILURE);
    }
@@ -201,7 +201,7 @@ bool tools::require(bool func_return_val, string msg) {
       if (msg != "") {
          cout << msg << "\n";
       }
-      cout << "tools::require: got return value `false`, ";
+      cout << "tools::require: got return value 'false', ";
       cout << "exiting.\n";
       exit(EXIT_FAILURE);
    }
@@ -245,8 +245,8 @@ bool tools::list_dir(string dir_name, vector<string>& contents) {
    }
    else {
       // could not open directory
-      cout << "tools::list_dir: could not open directory: `" << dir_name;
-      cout << "`\n";
+      cout << "tools::list_dir: could not open directory: '" << dir_name;
+      cout << "'\n";
       return false;
    }
 }
@@ -259,8 +259,8 @@ bool tools::list_dir(string dir_name, vector<string>& contents) {
 bool tools::list_dir_r(string dir_name, vector<string>& contents) {
    bool ret = list_dir_r(dir_name, contents, "");
    if (!ret) {
-      cout << "tools::list_dir_r: could not open directory: `" << dir_name;
-      cout << "`" << endl;
+      cout << "tools::list_dir_r: could not open directory: '" << dir_name;
+      cout << "'" << endl;
    }
    return ret;
 }

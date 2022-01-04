@@ -123,8 +123,8 @@ string tools::fold(int indent_width, int max_line_width, string s) {
 //      re.assign(rete);
 //   }
 //   catch (regex_error& e){
-//      cout << "tools::matches: regex returned error code: `";
-//      cout << e.code() << "` when evaluating expression: `" << str_re << "`\n";
+//      cout << "tools::matches: regex returned error code: '";
+//      cout << e.code() << "' when evaluating expression: '" << str_re << "'\n";
 //      throw e;
 //   }
 //
@@ -136,9 +136,9 @@ string tools::fold(int indent_width, int max_line_width, string s) {
 //
 //   }
 //   catch (regex_error& e){
-//      cout << "tools::matches: regex_match returned error code: `";
-//      cout << e.code() << "` when called with s: `" << s;
-//      cout << "` and expression: `" << str_re << "`\n";
+//      cout << "tools::matches: regex_match returned error code: '";
+//      cout << e.code() << "' when called with s: '" << s;
+//      cout << "' and expression: '" << str_re << "'\n";
 //      return false;
 //   }
 //
@@ -161,8 +161,8 @@ string tools::fold(int indent_width, int max_line_width, string s) {
 //      re.assign(rete);
 //   }
 //   catch (regex_error& e){
-//      cout << "tools::replace_all: regex returned error code: `";
-//      cout << e.code() << "` when evaluating expression: `" << str_re << "`\n";
+//      cout << "tools::replace_all: regex returned error code: '";
+//      cout << e.code() << "' when evaluating expression: '" << str_re << "'\n";
 //      throw e;
 //   }
 //
@@ -170,9 +170,9 @@ string tools::fold(int indent_width, int max_line_width, string s) {
 //      s = regex_replace(s, re, fmt, mf);
 //   }
 //   catch (regex_error& e){
-//      cout << "tools::replace_all: regex_match returned error code: `";
-//      cout << e.code() << "` when called with s: `" << s;
-//      cout << "` and expression: `" << str_re << "`\n";
+//      cout << "tools::replace_all: regex_match returned error code: '";
+//      cout << e.code() << "' when called with s: '" << s;
+//      cout << "' and expression: '" << str_re << "'\n";
 //      return false;
 //   }
 //
@@ -181,12 +181,12 @@ string tools::fold(int indent_width, int max_line_width, string s) {
 //
 //bool tools::find_in_file(string str_re, string fname) {
 //
-//   cout << "tools::find_in_file: opening file `" << fname << "`.\n";
+//   cout << "tools::find_in_file: opening file '" << fname << "'.\n";
 //
 //   ifstream ifh;
 //   ifh.open(fname, ifstream::in);
 //   if (!ifh.is_open()) {
-//      cout << "tools::find_in_file: couldn't open `" << fname << "`.\n";
+//      cout << "tools::find_in_file: couldn't open '" << fname << "'.\n";
 //      return false;
 //   }
 //
@@ -322,21 +322,21 @@ string tools::fold(int indent_width, int max_line_width, string s) {
 //     replace_all(s, R"((a|e|i|o|u))", "[$&]");
 //
 //   if (s != "s[u]bj[e]ct")
-//      cout << "test 1 failed!, `" << s << "` should be `s[u]bj[e]ct`!\n";
+//      cout << "test 1 failed!, '" << s << "' should be 's[u]bj[e]ct'!\n";
 //
 //   replace_all(s, R"((\[|\]))", "");
 //
 //   if (s != "subject")
-//      cout << "test 2 failed!, `" << s << "` should be `subject`!\n";
+//      cout << "test 2 failed!, '" << s << "' should be 'subject'!\n";
 //
 //   replace_first(s, R"(\w)", "S");
 //
 //   if (s != "Subject")
-//      cout << "test 3 failed!, `" << s << "` should be `Subject`!\n";
+//      cout << "test 3 failed!, '" << s << "' should be 'Subject'!\n";
 //
 //   s = "sub\nject";
 //
 //   replace_all(s, R"(\n)", "");
 //   if (s != "subject")
-//      cout << "test 4 failed!, `" << s << "` should be `subject`!\n";
+//      cout << "test 4 failed!, '" << s << "' should be 'subject'!\n";
 //}
