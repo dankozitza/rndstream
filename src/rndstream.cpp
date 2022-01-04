@@ -96,7 +96,7 @@ jconfig cfg("/etc/rndstream.json");
 
 int main(int argc, char *argv[]) {
    vector<string> Argv(0);
-   string         cmd_str;
+   string         cmd;
    options        opt;
    commands       cmds;
    Error          e;
@@ -108,11 +108,12 @@ int main(int argc, char *argv[]) {
    ioctl(0, TIOCGWINSZ, &ws);
 
    cfg.define_uint("s", time(NULL));
-   cfg.define_uint("l", ws.ws_row);
-   cfg.define_uint("w", ws.ws_col);
+   cfg.define_uint("l", 0);
+   cfg.define_uint("w", 1);
    cfg.define_str("o", " ~");
    cfg.define_dbl("t", 0.5);
    cfg.define_str("c", cfg.file_path);
+   cfg.define_btn("x");
 
    opt.handle('c', cfg.m["c"].set, cfg.m["c"].vstr);
    opt.handle('s', cfg.m["s"].set, cfg.m["s"].vstr);
@@ -120,6 +121,7 @@ int main(int argc, char *argv[]) {
    opt.handle('w', cfg.m["w"].set, cfg.m["w"].vstr);
    opt.handle('o', cfg.m["o"].set, cfg.m["o"].vstr);
    opt.handle('t', cfg.m["t"].set, cfg.m["t"].vstr);
+   opt.handle('x', cfg.m["x"].set);
 
    for (int i = 1; i < argc; i++)
       Argv.push_back(string(argv[i]));
@@ -161,6 +163,12 @@ int main(int argc, char *argv[]) {
       return 1;
    }
 
+   if (cfg.get_btn("x")) {
+      if (cfg.is_set("x") != true) {cout << "x is not set!?\n";}
+      cfg.m["l"].vuint[0] = ws.ws_row;
+      cfg.m["w"].vuint[0] = ws.ws_col;
+   }
+
    e = cfg.save();
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
@@ -168,10 +176,11 @@ int main(int argc, char *argv[]) {
    }
 
    if (Argv.size() == 0) {
-      cmd_str = "help";
+      cmd = "gen";
+      Argv = {"str"};
    }
    else {
-      cmd_str = Argv[0];
+      cmd = Argv[0];
       Argv.erase(Argv.begin());
    }
 
@@ -197,12 +206,11 @@ int main(int argc, char *argv[]) {
       "Displays the configuration file.",
       "env [key]");
 
-   cmds.run(cmd_str, Argv);
+   cmds.run(cmd, Argv);
 
    return 0;
 }
-
-void cmd_gen(vector<string>& argv) {
+ void cmd_gen(vector<string>& argv) {
    commands cmds2;
    cmds2.set_program_name(pn + " gen");
    string cmd2 = "help";

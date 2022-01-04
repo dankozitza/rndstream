@@ -80,6 +80,15 @@ void jconfig::define_bool(string key, bool val) {
    return;
 }
 
+void jconfig::define_btn(string key) {
+   cfgval nv;
+   nv.type = "button";
+   nv.set = false;
+   nv.bval = false;
+   m[key] = nv;
+  return;
+}
+
 int jconfig::get_int(string key) {
    if (m[key].vint.size() < 1) {return 0;}
    return m[key].vint[0];
@@ -116,18 +125,31 @@ bool jconfig::get_bool(string key) {
    return m[key].bval;
 }
 
+bool jconfig::get_btn(string key) {
+   return m[key].bval;
+}
+
+bool jconfig::is_set(string key) {
+   return m[key].set;
+}
+
 tools::Error jconfig::convert() {
    tools::Error e = NULL;
    Json::Value jv;
 
    for (mit = m.begin(); mit != m.end(); mit++) {
 
-      if (mit->second.set == false) {continue;} mit->second.set = false;
+      if (mit->second.set == false) {continue;}
       if (mit->second.type == "string") {continue;}
 
       if (mit->second.type == "bool") {
          if (mit->second.bval) {mit->second.bval = false;}
          else {mit->second.bval = true;}
+         continue;
+      }
+
+      if (mit->second.type == "button") {
+         mit->second.bval = true;
          continue;
       }
 
@@ -238,7 +260,13 @@ tools::Error jconfig::save() {
 string jconfig::getJSON() {
    string r = "{\n";
    int keycnt = 0;
+   unordered_map<string, cfgval> wm = {};
    for (mit = m.begin(); mit != m.end(); mit++) {
+      if (mit->second.type != "button") {
+         wm[mit->first] = mit->second;
+      }
+   }
+   for (mit = wm.begin(); mit != wm.end(); mit++) {
 
       r += "\"" + mit->first + "\": ";
 
@@ -281,7 +309,7 @@ string jconfig::getJSON() {
          r += "]";
       }
 
-      if (keycnt != m.size() - 1) {r += ",\n";}
+      if (keycnt != wm.size() - 1) {r += ",\n";}
       else {r += "\n";}
       keycnt++;
    }

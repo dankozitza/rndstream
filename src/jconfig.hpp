@@ -45,6 +45,7 @@ class jconfig {
       void define_dbl(string key, double val);
       void define_str(string key, string val);
       void define_bool(string key, bool val);
+      void define_btn(string key);
 
       void define_vint(string key, vector<int> val);
       void define_vuint(string key, vector<unsigned int> val);
@@ -55,12 +56,15 @@ class jconfig {
       double       get_dbl(string key);
       string       get_str(string key);
       bool         get_bool(string key);
+      bool         get_btn(string key);
       unsigned int get_uint(string key);
 
       vector<int>          get_vint(string key);
       vector<unsigned int> get_vuint(string key);
       vector<double>       get_vdbl(string key);
       vector<string>       get_vstr(string key);
+
+      bool is_set(string key);
 
       tools::Error convert();
       tools::Error load();
