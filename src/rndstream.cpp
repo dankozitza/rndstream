@@ -163,10 +163,10 @@ int main(int argc, char *argv[]) {
       return 1;
    }
 
-   if (cfg.get_btn("x")) {
-      cfg.m["l"].vuint[0] = ws.ws_row;
-      cfg.m["w"].vuint[0] = ws.ws_col;
-   }
+//   if (cfg.get_btn("x")) {
+//      cfg.m["l"].vuint[0] = ws.ws_row;
+//      cfg.m["w"].vuint[0] = ws.ws_col;
+//   }
 
    e = cfg.save();
    if (e != NULL) {
@@ -235,18 +235,27 @@ void cmd_stream() {
    srand(cfg.get_uint("s"));
    double wt = cfg.get_dbl("t");
    unsigned int ms = abs(wt * 1000);
+   unsigned int lmax = cfg.get_uint("l");
+   unsigned int wmax = cfg.get_uint("w");
+   struct winsize ws;
+   ioctl(0, TIOCGWINSZ, &ws);
+
+   if (cfg.get_btn("x")) {
+      lmax = ws.ws_row;
+      wmax = ws.ws_col;
+   }
 
    while(true) {
-      for (unsigned int l = 0; l <= cfg.get_uint("l"); l++) {
-         if (l > 0 && l == cfg.get_uint("l")) {continue;}
+      for (unsigned int l = 0; l <= lmax; l++) {
+         if (l > 0 && l == lmax) {continue;}
 
-         for (unsigned int w = 0; w < cfg.get_uint("w"); w++) {
+         for (unsigned int w = 0; w < wmax; w++) {
             cout << char(rand() 
                   % (cfg.get_str("o")[1] - cfg.get_str("o")[0])
                   + cfg.get_str("o")[0]);
          }
 
-         if (cfg.get_uint("l") != 0) {cout << endl;}
+         if (lmax != 0) {cout << endl;}
       }
       cout.flush();
 
