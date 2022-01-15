@@ -5,13 +5,10 @@
 //
 // Example:
 //
-//  use commands within the scope of each command
-//
-//       rndstream gen file newfile.txt -s 100MB -o A-z
-//       rndstream gen stream -t 5s -w 10 -l 1 -o 0-9
-//       rndstream gen stream -t 300ms -w 30 -l 10 -o any
+//       rndstream gen file newfile.txt -s 100MB -o " ~"
+//       rndstream gen str -t 5 -w 10 -l 1 -o 09
+//       rndstream gen str -t 0.3 -w 30 -l 10 -o " ~"
 //       rndstream gen seedfile seedcrypt.sf -n 1000
-//       rndstream gen seed
 //       rndstream set rand_function crand
 //       rndstream set seed time|file|<uint>
 //       rndstream set seedfile seedcrypt.sf
@@ -28,7 +25,7 @@
 //      partially defined by config.
 //    - all options are set in config file. an option only needs to be set once
 //      to change the functionality of rndstream.
-//    - boolean options must be defined on the command line each time.
+//    - 'button' options must be defined on the command line each time.
 //
 //  Configuration:
 //
@@ -49,25 +46,6 @@
 //     Substitute for srand that uses time and some extra logic to produce a
 //     unique time-based seed.
 //     check constants RAND_MAX and UINT_MAX in cstdlib
-//
-//  unsigned int srandtp() {
-//    srand(time);
-//    while (rand() % 100 != 1) {}
-//    unsigned int rv1 = rand();
-//    srand(time + rv1 + salt);
-//    return rv1;
-//
-//    need customized time input to make rand unique to time-based rand.
-//    build seed-salt prompt
-//    srand(time + 1032883);
-//    unsigned int rv1 = rand();
-//    while (rand() & 100 < rv1) {}
-//    srand(time);
-//    unsigned int rv2 = rand();
-//    rv1 = rand();
-//    srand(rv1);
-//    return rv1;
-//  }
 //
 // Created by Daniel Kozitza
 //
@@ -110,6 +88,7 @@ int main(int argc, char *argv[]) {
    cfg.define_uint("s", time(NULL));
    cfg.define_uint("l", 0);
    cfg.define_uint("w", 1);
+   cfg.define_uint("f", 0);
    cfg.define_str("o", " ~");
    cfg.define_dbl("t", 0.5);
    cfg.define_str("c", cfg.file_path);
@@ -119,6 +98,7 @@ int main(int argc, char *argv[]) {
    opt.handle('s', cfg.m["s"].set, cfg.m["s"].vstr);
    opt.handle('l', cfg.m["l"].set, cfg.m["l"].vstr);
    opt.handle('w', cfg.m["w"].set, cfg.m["w"].vstr);
+   opt.handle('f', cfg.m["f"].set, cfg.m["f"].vstr);
    opt.handle('o', cfg.m["o"].set, cfg.m["o"].vstr);
    opt.handle('t', cfg.m["t"].set, cfg.m["t"].vstr);
    opt.handle('x', cfg.m["x"].set);
@@ -162,11 +142,6 @@ int main(int argc, char *argv[]) {
       cout << pn << ": Error: " << e << endl;
       return 1;
    }
-
-//   if (cfg.get_btn("x")) {
-//      cfg.m["l"].vuint[0] = ws.ws_row;
-//      cfg.m["w"].vuint[0] = ws.ws_col;
-//   }
 
    e = cfg.save();
    if (e != NULL) {
@@ -237,15 +212,16 @@ void cmd_stream() {
    unsigned int ms = abs(wt * 1000);
    unsigned int lmax = cfg.get_uint("l");
    unsigned int wmax = cfg.get_uint("w");
+   unsigned int frame = 0;
+   unsigned int fmax = cfg.get_uint("f");
    struct winsize ws;
-   ioctl(0, TIOCGWINSZ, &ws);
-
-   if (cfg.get_btn("x")) {
-      lmax = ws.ws_row;
-      wmax = ws.ws_col;
-   }
 
    while(true) {
+      ioctl(0, TIOCGWINSZ, &ws);
+      if (cfg.get_btn("x")) {
+         lmax = ws.ws_row;
+         wmax = ws.ws_col;
+      }
       for (unsigned int l = 0; l <= lmax; l++) {
          if (l > 0 && l == lmax) {continue;}
 
@@ -254,15 +230,19 @@ void cmd_stream() {
                   % (cfg.get_str("o")[1] - cfg.get_str("o")[0])
                   + cfg.get_str("o")[0]);
          }
+         cout.flush();
+
+         if (lmax == 0 || l == lmax - 1) {
+            this_thread::sleep_for(chrono::milliseconds(ms));
+            frame++;
+         }
 
          if (lmax != 0) {cout << endl;}
+         if (fmax != 0 && frame >= fmax) {break;}
       }
-      cout.flush();
-
-      this_thread::sleep_for(chrono::milliseconds(ms));
+      if (fmax != 0 && frame >= fmax) {break;}
    }
 
-   cout << "wait time: " << wt << endl;
    return;
 }
 
