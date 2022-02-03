@@ -5,22 +5,21 @@
 //
 // Example:
 //
-//       rndstream gen file newfile.txt -s 100MB -o " ~"
+//       // generate seeds
 //       rndstream gen str -t 5 -w 10 -l 1 -o 09
-//       rndstream gen str -t 0.3 -w 30 -l 10 -o " ~"
-//       rndstream gen seedfile seedcrypt.sf -n 1000
-//       rndstream set rand_function crand
-//       rndstream set seed time|file|<uint>
-//       rndstream set seedfile seedcrypt.sf
-//       rndstream set saltprompt true
-//       rndstream get [env_key]
+//       // generate random 6-letter strings
+//       rndstream gen str -t 1 -w 6 -l 1 -o az
+//       // fill screen every half second with any character
+//       rndstream gen str -t 0.5 -x -o " ~"
 //
-//       // commands usage allows for nested help menus
-//       rndstream gen help stream
+//       // get the environment
+//       rndstream env
+//
+//       // commands usage allows nested help menus
+//       rndstream gen help str
 //
 //  CLI functionality:
 //
-//    - options are removed from command line and placed in configuration file.
 //    - commands are evaluated from left to right with functionality
 //      partially defined by config.
 //    - all options are set in config file. an option only needs to be set once
@@ -29,17 +28,16 @@
 //
 //  Configuration:
 //
-//     Use json file /etc/rndstream.json to configure.
+//     Use json file /etc/rndstream.json to configure. You may also need to set
+//     the permissions for this file.
 //
-//  multiple rand functions
+//  TODO: multiple rand functions
 //
 //  crand - re-seeds every n calls
 //  qrand - makes frequent calls to srand
 //  grand - filters output of rand by calling srand when finding 'bad' numbers
 //  mrand - keeps record of seeds and calls to rand. has accessible json index.
-//  lrand - uses dual calls to rand to produce long ints.
-//
-//  store unsigned int values to be used as seeds
+//  lrand - uses dual calls to rand to produce long uints.
 //
 //  srandtp
 //
@@ -227,7 +225,7 @@ void cmd_stream() {
 
          for (unsigned int w = 0; w < wmax; w++) {
             cout << char(rand() 
-                  % (cfg.get_str("o")[1] - cfg.get_str("o")[0])
+                  % (cfg.get_str("o")[1] - cfg.get_str("o")[0] + 1)
                   + cfg.get_str("o")[0]);
          }
          cout.flush();
