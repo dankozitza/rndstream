@@ -64,6 +64,17 @@ class jconfig {
       vector<double>       get_vdbl(string key);
       vector<string>       get_vstr(string key);
 
+      void set(string key, int val);
+      void set(string key, unsigned int val);
+      void set(string key, double val);
+      void set(string key, string val);
+      void set(string key, bool val);
+
+      void set(string key, vector<int> vval);
+      void set(string key, vector<unsigned int> vval);
+      void set(string key, vector<double> vval);
+      void set(string key, vector<string> vval);
+
       bool is_set(string key);
 
       tools::Error convert();

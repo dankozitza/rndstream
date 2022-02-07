@@ -6,9 +6,9 @@
 // Example:
 //
 //       // generate seeds
-//       rndstream gen str -t 5 -w 10 -l 1 -o 09
+//       rndstream gen str -t 1 -w 10 -l 1 -o 09
 //       // generate random 6-letter strings
-//       rndstream gen str -t 1 -w 6 -l 1 -o az
+//       rndstream gen str -w 6 -l 1 -o az
 //       // fill screen every half second with any character
 //       rndstream gen str -t 0.5 -x -o " ~"
 //
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
    string         cmd;
    options        opt;
    commands       cmds;
+   unsigned int   t = time(NULL);
    Error          e;
    pn = argv[0];
 
@@ -83,13 +84,14 @@ int main(int argc, char *argv[]) {
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
-   cfg.define_uint("s", time(NULL));
+   cfg.define_uint("s", t);
    cfg.define_uint("l", 0);
    cfg.define_uint("w", 1);
    cfg.define_uint("f", 0);
    cfg.define_str("o", " ~");
    cfg.define_dbl("t", 0.5);
    cfg.define_str("c", cfg.file_path);
+   cfg.define_btn("r");
    cfg.define_btn("x");
 
    opt.handle('c', cfg.m["c"].set, cfg.m["c"].vstr);
@@ -99,6 +101,7 @@ int main(int argc, char *argv[]) {
    opt.handle('f', cfg.m["f"].set, cfg.m["f"].vstr);
    opt.handle('o', cfg.m["o"].set, cfg.m["o"].vstr);
    opt.handle('t', cfg.m["t"].set, cfg.m["t"].vstr);
+   opt.handle('r', cfg.m["r"].set);
    opt.handle('x', cfg.m["x"].set);
 
    for (int i = 1; i < argc; i++)
@@ -139,6 +142,10 @@ int main(int argc, char *argv[]) {
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
       return 1;
+   }
+
+   if (cfg.get_btn("r")) {
+      cfg.set("s", t);
    }
 
    e = cfg.save();

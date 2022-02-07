@@ -129,6 +129,69 @@ bool jconfig::get_btn(string key) {
    return m[key].bval;
 }
 
+void jconfig::set(string key, int val) {
+   vector<int> tmp = {val};
+   set(key, tmp);
+   return;
+}
+void jconfig::set(string key, vector<int> vval) {
+   cfgval tmp;
+   tmp.type = "int";
+   tmp.vint = vval;
+   tmp.set = true;
+   m[key] = tmp;
+   return;
+}
+
+void jconfig::set(string key, unsigned int val) {
+   vector<unsigned int> tmp = {val};
+   set(key, tmp);
+   return;
+}
+void jconfig::set(string key, vector<unsigned int> vval) {
+   cfgval tmp;
+   tmp.type = "uint";
+   tmp.vuint = vval;
+   tmp.set = true;
+   m[key] = tmp;
+   return;
+}
+
+void jconfig::set(string key, double val) {
+   vector<double> tmp = {val};
+   set(key, tmp);
+   return;
+}
+void jconfig::set(string key, vector<double> vval) {
+   cfgval tmp;
+   tmp.type = "double";
+   tmp.vdbl = vval;
+   tmp.set = true;
+   m[key] = tmp;
+   return;
+}
+
+void jconfig::set(string key, string val) {
+   vector<string> tmp = {val};
+   set(key, tmp);
+   return;
+}
+void jconfig::set(string key, vector<string> vval) {
+   cfgval tmp;
+   tmp.type = "string";
+   tmp.vstr = vval;
+   tmp.set = true;
+   m[key] = tmp;
+   return;
+}
+
+void jconfig::set(string key, bool val) {
+   m[key].type = "bool";
+   m[key].bval = val;
+   m[key].set = true;
+   return;
+}
+
 bool jconfig::is_set(string key) {
    return m[key].set;
 }
