@@ -1,3 +1,4 @@
+```
 rndstream
 
    Rndstream generates customized random text.
@@ -25,4 +26,4 @@ Commands:
    gen        - Generate random text. Use 'gen help' for more info.
 
 Use "./rndstream help [command]" for more information about a command.
-
+```
