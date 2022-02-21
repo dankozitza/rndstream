@@ -1,24 +1,9 @@
 //
 // rndstream.cpp
 //
-// Command line tool that generates customizable random text.
+//    Command line tool that generates customizable random text.
 //
-// Example:
-//
-//       // generate seeds
-//       rndstream gen str -t 1 -w 10 -l 1 -o 09
-//       // generate random 6-letter strings
-//       rndstream gen str -w 6 -l 1 -o az
-//       // fill screen every half second with any character
-//       rndstream gen str -t 0.5 -x -o " ~"
-//
-//       // get the environment
-//       rndstream env
-//
-//       // commands usage allows nested help menus
-//       rndstream gen help str
-//
-//  CLI functionality:
+// CLI functionality:
 //
 //    - commands are evaluated from left to right with functionality
 //      partially defined by config.
@@ -31,6 +16,28 @@
 //     Use json file /etc/rndstream.json to configure. You may also need to set
 //     the permissions for this file.
 //
+// Example:
+//
+//     generate seeds
+//
+//        rndstream gen str -t 1 -w 10 -l 1 -o 09
+//
+//     generate random 6-letter strings
+//
+//        rndstream gen str -w 6 -l 1 -o az
+//
+//     fill screen every half second with any character
+//
+//        rndstream gen str -t 0.5 -x -o " ~"
+//
+//     get the environment
+//
+//        rndstream env
+//
+//     commands usage allows nested help menus
+//
+//        rndstream gen help str
+//
 //  TODO: multiple rand functions
 //
 //  crand - re-seeds every n calls
@@ -38,12 +45,6 @@
 //  grand - filters output of rand by calling srand when finding 'bad' numbers
 //  mrand - keeps record of seeds and calls to rand. has accessible json index.
 //  lrand - uses dual calls to rand to produce long uints.
-//
-//  srandtp
-//
-//     Substitute for srand that uses time and some extra logic to produce a
-//     unique time-based seed.
-//     check constants RAND_MAX and UINT_MAX in cstdlib
 //
 // Created by Daniel Kozitza
 //
@@ -64,7 +65,6 @@ using namespace tools;
 
 void cmd_gen(vector<string>& argv);
 void cmd_stream();
-void cmd_set(vector<string>& argv);
 void cmd_env();
 
 string  pn;
@@ -88,9 +88,11 @@ int main(int argc, char *argv[]) {
    cfg.define_uint("l", 0);
    cfg.define_uint("w", 1);
    cfg.define_uint("f", 0);
-   cfg.define_str("o", " ~");
+   cfg.define_uint("i", 0);
    cfg.define_dbl("t", 0.5);
    cfg.define_str("c", cfg.file_path);
+   cfg.define_str("o", " ~");
+   cfg.define_int("v", 0);
    cfg.define_btn("r");
    cfg.define_btn("x");
 
@@ -101,6 +103,8 @@ int main(int argc, char *argv[]) {
    opt.handle('f', cfg.m["f"].set, cfg.m["f"].vstr);
    opt.handle('o', cfg.m["o"].set, cfg.m["o"].vstr);
    opt.handle('t', cfg.m["t"].set, cfg.m["t"].vstr);
+   opt.handle('v', cfg.m["v"].set, cfg.m["v"].vstr);
+   opt.handle('i', cfg.m["i"].set, cfg.m["i"].vstr);
    opt.handle('r', cfg.m["r"].set);
    opt.handle('x', cfg.m["x"].set);
 
@@ -167,18 +171,25 @@ int main(int argc, char *argv[]) {
    cmds.set_max_line_width(ws.ws_col);
    cmds.set_cmds_help(
       "\n   Rndstream generates customized random text.\n\n"
-      "Usage:\n\n   rndstream <command> [arguments]\n");
+      "Usage:\n\n   rndstream <command> [arguments]\n\n"
+      "Options:\n\n"
+      "   -s <seed>   Set the seed passed to srand.\n"
+      "   -w <width>  Set the number of characters printed per line.\n"
+      "   -l <lines>  Set the number of lines printed per frame.\n"
+      "   -f <frames> Set the number of frames printed.\n"
+      "   -t <delay>  Set the time to wait between frames (seconds).\n"
+      "   -o <output> Define the output characters. Ex: ' ~' for all,\n"
+      "               'az' for lowercase alphabet, '09' for digits.\n"
+      "   -c <config> Set a custom config file location. (set every time)\n"
+      "   -r          Re-set the seed using current time.\n"
+      "   -x          Set width and lines to terminal size.\n"
+   );
 
    cmds.handle(
       "gen",
       cmd_gen,
-      "Generate random text.",
+      "Generate random text. Use 'gen help' for more info.",
       "gen <command> [-options]");
-   cmds.handle(
-      "set",
-      cmd_set,
-      "Set environment variables.",
-      "set <key> <value>");
    cmds.handle(
       "env",
       cmd_env,
@@ -213,59 +224,68 @@ int main(int argc, char *argv[]) {
 void cmd_stream() {
 
    srand(cfg.get_uint("s"));
-   double wt = cfg.get_dbl("t");
-   unsigned int ms = abs(wt * 1000);
-   unsigned int lmax = cfg.get_uint("l");
-   unsigned int wmax = cfg.get_uint("w");
-   unsigned int frame = 0;
-   unsigned int fmax = cfg.get_uint("f");
+   double       wt    =  cfg.get_dbl("t");
+   int          v     = cfg.get_int("v");
+   unsigned int ms    = abs(wt * 1000);
+   unsigned int lmax  = cfg.get_uint("l");
+   unsigned int wmax  = cfg.get_uint("w");
+   unsigned int frame = 1;
+   unsigned int fmax  = cfg.get_uint("f");
+   unsigned int i     = cfg.get_uint("i");
    struct winsize ws;
+   bool skipframe = false;
+   bool nolines = false;
 
-   while(true) {
+   if (lmax == 0) {
+      lmax = 1;
+      nolines = true;
+   }
+
+   while (true) {
+      if (i != 0 && i >= frame) {skipframe = true;}
+      else {skipframe = false;}
+
       ioctl(0, TIOCGWINSZ, &ws);
       if (cfg.get_btn("x")) {
          lmax = ws.ws_row;
          wmax = ws.ws_col;
       }
-      for (unsigned int l = 0; l <= lmax; l++) {
-         if (l > 0 && l == lmax) {continue;}
+      if (wmax == 0) {wmax = 1;}
+
+      for (unsigned int l = 0; l < lmax; l++) {
+         if (!skipframe && v >= 1 && l == 0 && !nolines) {
+            cout << "frame: " << frame << endl;
+         }
+
+         if (skipframe) {
+            for (unsigned int w = 0; w < wmax; w++) {rand();}
+            if (l == lmax - 1) {frame++;}
+            continue;
+         }
 
          for (unsigned int w = 0; w < wmax; w++) {
             cout << char(rand() 
                   % (cfg.get_str("o")[1] - cfg.get_str("o")[0] + 1)
                   + cfg.get_str("o")[0]);
-         }
-         cout.flush();
 
-         if (lmax == 0 || l == lmax - 1) {
-            this_thread::sleep_for(chrono::milliseconds(ms));
-            frame++;
+            if ((w == wmax - 1)
+                && (l == lmax - 1)) {
+               if (nolines == false) {cout << endl;}
+               cout.flush();
+               this_thread::sleep_for(chrono::milliseconds(ms));
+               frame++;
+            }
          }
 
-         if (lmax != 0) {cout << endl;}
-         if (fmax != 0 && frame >= fmax) {break;}
+         if (fmax != 0 && frame > fmax) {break;}
       }
-      if (fmax != 0 && frame >= fmax) {break;}
+      if (fmax != 0 && frame > fmax) {break;}
    }
 
-   return;
-}
-
-void cmd_set(vector<string>& argv) {
-   if (argv.size() == 2) {
-      cfg.define_str(argv[0], argv[1]);
-      tools::Error e = cfg.save();
-      if (e != NULL) {
-         cout << e << endl;
-      }
-      else {
-         cout << cfg.getJSON() << endl;
-      }
-   }
    return;
 }
 
 void cmd_env() {
-   cout << cfg.file_path << ":\n" << cfg.getJSON() << "\n";
+   cout << cfg.file_path << ":\n" << cfg.getJSON();
    return;
 }
