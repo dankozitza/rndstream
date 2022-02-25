@@ -275,18 +275,16 @@ void cmd_stream() {
             cout << char(rand() 
                   % (cfg.get_str("output")[1] - cfg.get_str("output")[0] + 1)
                   + cfg.get_str("output")[0]);
-
-            if ((w == wmax - 1)
-                && (l == lmax - 1)) {
-               if (nolines == false) {cout << endl;}
-               cout.flush();
-               cfg.set("lframe", (unsigned int) frame);
-
-               this_thread::sleep_for(chrono::milliseconds(ms));
-               frame++;
-            }
          }
+         if (!nolines) {cout << endl;}
 
+         if (l == lmax - 1) {
+            cout.flush();
+            cfg.set("lframe", (unsigned int) frame);
+
+            this_thread::sleep_for(chrono::milliseconds(ms));
+            frame++;
+         }
          if (fmax != 0 && frame > fmax) {break;}
       }
       if (fmax != 0 && frame > fmax) {break;}
