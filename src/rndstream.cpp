@@ -282,7 +282,9 @@ void cmd_stream() {
             cout.flush();
             cfg.set("lframe", (unsigned int) frame);
 
-            this_thread::sleep_for(chrono::milliseconds(ms));
+            if (ms != 0) {
+               this_thread::sleep_for(chrono::milliseconds(ms));
+            }
             frame++;
          }
          if (fmax != 0 && frame > fmax) {break;}
@@ -306,11 +308,17 @@ void callback_func_prompt(int sig) {
    }
    cout << "\n           --- paused ---\n";
    cout << "\n(last frame: " << cfg.get_uint("lframe");
-   cout << ") [u: unpause | e: exit]\n-> ";
-   cin >> o;
+   cout << ") [u: resume | k: exit]\n-> ";
 
-   if (o == 'e') {
-      exit(0);
+   while (cin >> o) {
+      if (o < 97) {o += 32;}
+
+      if (o == 'e' || o == 'q' || o == 'x' || o == 'k') {
+         exit(0);
+      }
+      if (o == 'u' || o == 'r') {
+         break;
+      }
    }
    cout << endl;
    return;
