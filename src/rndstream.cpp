@@ -46,6 +46,9 @@
 //  mrand - keeps record of seeds and calls to rand. has accessible json index.
 //  lrand - uses dual calls to rand to produce long uints.
 //
+//  Verbose level 2:
+//     frames are printed as json objects that contain an array of strings
+//
 // Created by Daniel Kozitza
 //
 
@@ -63,6 +66,8 @@
 
 using namespace tools;
 
+void callback_func_prompt(int sig);
+
 void cmd_gen(vector<string>& argv);
 void cmd_stream();
 void cmd_env();
@@ -79,32 +84,33 @@ int main(int argc, char *argv[]) {
    Error          e;
    pn = argv[0];
 
-   signal(SIGINT, signals_callback_handler);
+   signal(SIGINT, scbh_return_quiet);
+   signals(SIGINT, callback_func_prompt);
 
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
-   cfg.define_uint("s", t);
-   cfg.define_uint("l", 0);
-   cfg.define_uint("w", 1);
-   cfg.define_uint("f", 0);
-   cfg.define_uint("i", 0);
-   cfg.define_dbl("t", 0.5);
-   cfg.define_str("c", cfg.file_path);
-   cfg.define_str("o", " ~");
-   cfg.define_int("v", 0);
+   cfg.define_uint("seed", t);
+   cfg.define_uint("lines", 0);
+   cfg.define_uint("width", 1);
+   cfg.define_uint("frames", 0);
+   cfg.define_uint("ignore", 0);
+   cfg.define_dbl("delay", 0.5);
+   cfg.define_str("config", cfg.file_path);
+   cfg.define_str("output", " ~");
+   cfg.define_int("verbose", 0);
    cfg.define_btn("r");
    cfg.define_btn("x");
 
-   opt.handle('c', cfg.m["c"].set, cfg.m["c"].vstr);
-   opt.handle('s', cfg.m["s"].set, cfg.m["s"].vstr);
-   opt.handle('l', cfg.m["l"].set, cfg.m["l"].vstr);
-   opt.handle('w', cfg.m["w"].set, cfg.m["w"].vstr);
-   opt.handle('f', cfg.m["f"].set, cfg.m["f"].vstr);
-   opt.handle('o', cfg.m["o"].set, cfg.m["o"].vstr);
-   opt.handle('t', cfg.m["t"].set, cfg.m["t"].vstr);
-   opt.handle('v', cfg.m["v"].set, cfg.m["v"].vstr);
-   opt.handle('i', cfg.m["i"].set, cfg.m["i"].vstr);
+   opt.handle('c', cfg.m["config"].set,  cfg.m["config"].vstr);
+   opt.handle('s', cfg.m["seed"].set,    cfg.m["seed"].vstr);
+   opt.handle('l', cfg.m["lines"].set,   cfg.m["lines"].vstr);
+   opt.handle('w', cfg.m["width"].set,   cfg.m["width"].vstr);
+   opt.handle('f', cfg.m["frames"].set,  cfg.m["frames"].vstr);
+   opt.handle('o', cfg.m["output"].set,  cfg.m["output"].vstr);
+   opt.handle('t', cfg.m["delay"].set,   cfg.m["delay"].vstr);
+   opt.handle('i', cfg.m["ignore"].set,  cfg.m["ignore"].vstr);
+   opt.handle('v', cfg.m["verbose"].set, cfg.m["verbose"].vstr);
    opt.handle('r', cfg.m["r"].set);
    opt.handle('x', cfg.m["x"].set);
 
@@ -128,8 +134,8 @@ int main(int argc, char *argv[]) {
       return 1;
    }
 
-   if (cfg.m["c"].set || cfg.file_path != cfg.get_str("c")) {
-      cfg.file_path = cfg.get_str("c");
+   if (cfg.m["config"].set || cfg.file_path != cfg.get_str("config")) {
+      cfg.file_path = cfg.get_str("config");
       e = cfg.load();
       if (e != NULL) {
          cout << pn << ": Making jconfig file '" << cfg.file_path;
@@ -149,7 +155,7 @@ int main(int argc, char *argv[]) {
    }
 
    if (cfg.get_btn("r")) {
-      cfg.set("s", t);
+      cfg.set("seed", t);
    }
 
    e = cfg.save();
@@ -177,6 +183,7 @@ int main(int argc, char *argv[]) {
       "   -w <width>  Set the number of characters printed per line.\n"
       "   -l <lines>  Set the number of lines printed per frame.\n"
       "   -f <frames> Set the number of frames printed.\n"
+      "   -i <ignore> Set the number of frames to skip.\n"
       "   -t <delay>  Set the time to wait between frames (seconds).\n"
       "   -o <output> Define the output characters. Ex: ' ~' for all,\n"
       "               'az' for lowercase alphabet, '09' for digits.\n"
@@ -223,15 +230,15 @@ int main(int argc, char *argv[]) {
 
 void cmd_stream() {
 
-   srand(cfg.get_uint("s"));
-   double       wt    =  cfg.get_dbl("t");
-   int          v     = cfg.get_int("v");
+   srand(cfg.get_uint("seed"));
+   double       wt    = cfg.get_dbl("delay");
+   int          v     = cfg.get_int("verbose");
    unsigned int ms    = abs(wt * 1000);
-   unsigned int lmax  = cfg.get_uint("l");
-   unsigned int wmax  = cfg.get_uint("w");
+   unsigned int lmax  = cfg.get_uint("lines");
+   unsigned int wmax  = cfg.get_uint("width");
    unsigned int frame = 1;
-   unsigned int fmax  = cfg.get_uint("f");
-   unsigned int i     = cfg.get_uint("i");
+   unsigned int fmax  = cfg.get_uint("frames");
+   unsigned int i     = cfg.get_uint("ignore");
    struct winsize ws;
    bool skipframe = false;
    bool nolines = false;
@@ -240,6 +247,7 @@ void cmd_stream() {
       lmax = 1;
       nolines = true;
    }
+   cfg.set("lframe", (unsigned int) 1);
 
    while (true) {
       if (i != 0 && i >= frame) {skipframe = true;}
@@ -265,13 +273,15 @@ void cmd_stream() {
 
          for (unsigned int w = 0; w < wmax; w++) {
             cout << char(rand() 
-                  % (cfg.get_str("o")[1] - cfg.get_str("o")[0] + 1)
-                  + cfg.get_str("o")[0]);
+                  % (cfg.get_str("output")[1] - cfg.get_str("output")[0] + 1)
+                  + cfg.get_str("output")[0]);
 
             if ((w == wmax - 1)
                 && (l == lmax - 1)) {
                if (nolines == false) {cout << endl;}
                cout.flush();
+               cfg.set("lframe", (unsigned int) frame);
+
                this_thread::sleep_for(chrono::milliseconds(ms));
                frame++;
             }
@@ -287,5 +297,23 @@ void cmd_stream() {
 
 void cmd_env() {
    cout << cfg.file_path << ":\n" << cfg.getJSON();
+   return;
+}
+
+void callback_func_prompt(int sig) {
+   char o = 'e';
+
+   if (cfg.get_uint("lines") == 0) {
+      cout << endl;
+   }
+   cout << "\n           --- paused ---\n";
+   cout << "\n(last frame: " << cfg.get_uint("lframe");
+   cout << ") [u: unpause | e: exit]\n-> ";
+   cin >> o;
+
+   if (o == 'e') {
+      exit(0);
+   }
+   cout << endl;
    return;
 }

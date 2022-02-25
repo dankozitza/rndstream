@@ -32,6 +32,8 @@ namespace tools {
    Error error(string message = "");
    Error errorf(char const * format, ...);
    void signals_callback_handler(int signum);
+   void scbh_return(int signum);
+   void scbh_return_quiet(int signum);
    void signals(int sig, void (*callback_func)(int));
    bool require(int sys_exit_val, string msg = "");
    bool require(bool func_return_val, string msg = "");

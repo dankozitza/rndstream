@@ -30,10 +30,12 @@ vector<void (*)(int)> SigHandlers[16];
 //
 tools::Error tools::error(string message) {
    static string tmp;
-   if (message == "")
+   if (message == "") {
       tmp = "Generic error.";
-   else
+   }
+   else {
       tmp = message;
+   }
 
    return tmp.c_str();
 }
@@ -111,7 +113,6 @@ tools::Error tools::errorf(char const * format, ...) {
          case 'c':
             Printable.c = va_arg( vl, int );
             sprintf(buff, "%c", Printable.c);
-            cout << "buff: " << buff << endl;
             msg += buff;
          break;
 
@@ -145,18 +146,52 @@ void tools::signals_callback_handler(int signum) {
    cout << signum << "'\n";
 
    if (signum < 0 || signum > 15) {
-      cout << "   signal number out of bounds!!!\n";
+      cout << "signal number out of bounds!\n";
       exit(signum);
+      return;
    }
 
-   // run all other handlers
-   // this doesn't work if the handler exits
-   for (const auto handler : SigHandlers[signum])
+   // run callback functions
+   for (const auto handler : SigHandlers[signum]) {
       handler(signum);
+   }
 
    // Terminate program
    exit(signum);
+   return;
 }
+
+// scbh_return
+//
+// Signals callback handler that does not exit. runs all the signal handlers in
+// the SigHandlers vector associated with given signal. use the signals function
+// to add handlers to the SigHandlers array of vectors.
+//
+// function to be called when ctrl-c (SIGINT) signal is sent to process
+//
+void tools::scbh_return(int signum) {
+
+   cout << "\nsignals_callback_handler: caught signal '" << signum << "'\n";
+
+   scbh_return_quiet(signum);
+   return;
+}
+
+void tools::scbh_return_quiet(int signum) {
+
+   if (signum < 0 || signum > 15) {
+      cout << "signal number out of bounds!\n";
+      exit(signum);
+      return;
+   }
+
+   // run each function passed to signals and return
+   for (const auto handler : SigHandlers[signum]) {
+      handler(signum);
+   }
+   return;
+}
+
 
 // signals
 //
@@ -169,6 +204,7 @@ void tools::signals_callback_handler(int signum) {
 //
 void tools::signals(int sig, void (*callback_func)(int)) {
    SigHandlers[sig].push_back(callback_func);
+   return;
 }
 
 // require

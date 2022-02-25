@@ -13,6 +13,7 @@ Options:
    -w <width>  Set the number of characters printed per line.
    -l <lines>  Set the number of lines printed per frame.
    -f <frames> Set the number of frames printed.
+   -i <ignore> Set the number of frames to skip.
    -t <delay>  Set the time to wait between frames (seconds).
    -o <output> Define the output characters. Ex: ' ~' for all,
                'az' for lowercase alphabet, '09' for digits.
