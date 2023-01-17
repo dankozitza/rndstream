@@ -1,4 +1,3 @@
-//
 // rndstream.cpp
 //
 //    Command line tool that generates customizable random text.
@@ -114,8 +113,9 @@ int main(int argc, char *argv[]) {
    opt.handle('r', cfg.m["r"].set);
    opt.handle('x', cfg.m["x"].set);
 
-   for (int i = 1; i < argc; i++)
+   for (int i = 1; i < argc; i++) {
       Argv.push_back(string(argv[i]));
+   }
 
    e = cfg.load();
    if (e != NULL) {
@@ -135,6 +135,12 @@ int main(int argc, char *argv[]) {
    }
 
    if (cfg.m["config"].set || cfg.file_path != cfg.get_str("config")) {
+
+      Argv.clear();
+      for (int i = 1; i < argc; i++) {
+         Argv.push_back(string(argv[i]));
+      }
+
       cfg.file_path = cfg.get_str("config");
       e = cfg.load();
       if (e != NULL) {
@@ -145,6 +151,12 @@ int main(int argc, char *argv[]) {
             cout << pn << ": Error: " << e << endl;
             return 1;
          }
+      }
+
+      e = opt.evaluate(Argv);
+      if (e != NULL) {
+         cout << pn << ": Error: " << e << endl;
+         return 1;
       }
    }
 

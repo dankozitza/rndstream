@@ -8,6 +8,7 @@
 
 jconfig::jconfig(string file) {
    file_path = file;
+   m = unordered_map<string, cfgval>();
    mit = m.begin();
 }
 
