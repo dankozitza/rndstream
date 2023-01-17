@@ -100,6 +100,7 @@ int main(int argc, char *argv[]) {
    cfg.define_int("verbose", 0);
    cfg.define_btn("r");
    cfg.define_btn("x");
+   cfg.define_btn("h");
 
    opt.handle('c', cfg.m["config"].set,  cfg.m["config"].vstr);
    opt.handle('s', cfg.m["seed"].set,    cfg.m["seed"].vstr);
@@ -112,6 +113,7 @@ int main(int argc, char *argv[]) {
    opt.handle('v', cfg.m["verbose"].set, cfg.m["verbose"].vstr);
    opt.handle('r', cfg.m["r"].set);
    opt.handle('x', cfg.m["x"].set);
+   opt.handle('h', cfg.m["h"].set);
 
    for (int i = 1; i < argc; i++) {
       Argv.push_back(string(argv[i]));
@@ -166,6 +168,10 @@ int main(int argc, char *argv[]) {
       return 1;
    }
 
+   if (cfg.get_btn("h")) {
+      Argv.push_back("help");
+   }
+
    if (cfg.get_btn("r")) {
       cfg.set("seed", t);
    }
@@ -212,8 +218,8 @@ int main(int argc, char *argv[]) {
    cmds.handle(
       "env",
       cmd_env,
-      "Displays the configuration file.",
-      "env [key]");
+      "Display the configuration file.",
+      "env");
 
    cmds.run(cmd, Argv);
 
@@ -308,7 +314,7 @@ void cmd_stream() {
 }
 
 void cmd_env() {
-   cout << cfg.file_path << ":\n" << cfg.getJSON();
+   cout << cfg.file_path << ":\n" << cfg.getJSON() << "\n";
    return;
 }
 

@@ -1,4 +1,5 @@
 ```
+
 rndstream
 
    Rndstream generates customized random text.
@@ -27,4 +28,32 @@ Commands:
    gen        - Generate random text. Use 'gen help' for more info.
 
 Use "./rndstream help [command]" for more information about a command.
+
+Files:
+
+   /etc/rndstream.json is the default configuration file and it must exist
+   for rndstream to operate correctly. To override the use of this config
+   file use the -c option or manually change the 'config' option in
+   /etc/rndstream.json.
+
+   To give all users read write permissions for the config file:
+
+      sudo chmod 666 /etc/rndstream.json
+
+Build:
+
+   make
+
+Install:
+
+   sudo make install
+
+Uninstall:
+
+   sudo make uninstall
+
+Cleanup:
+
+   make clean
+
 ```
