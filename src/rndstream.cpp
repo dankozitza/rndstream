@@ -72,6 +72,7 @@ void cmd_stream();
 void cmd_env();
 
 string  pn;
+unsigned int lframe = 1;
 jconfig cfg("/etc/rndstream.json");
 
 int main(int argc, char *argv[]) {
@@ -89,31 +90,37 @@ int main(int argc, char *argv[]) {
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
-   cfg.define_uint("seed", t);
-   cfg.define_uint("lines", 0);
-   cfg.define_uint("width", 1);
+   cfg.define_uint("seed",   t);
+   cfg.define_uint("lines",  0);
+   cfg.define_uint("width",  1);
    cfg.define_uint("frames", 0);
+   cfg.define_uint("print",  0);
    cfg.define_uint("ignore", 0);
-   cfg.define_dbl("delay", 0.5);
-   cfg.define_str("config", cfg.file_path);
-   cfg.define_str("output", " ~");
+   cfg.define_dbl("delay",   0.5);
+   cfg.define_str("config",  cfg.file_path);
+   cfg.define_str("output",  " ~");
    cfg.define_int("verbose", 0);
    cfg.define_btn("r");
+   cfg.define_btn("R");
    cfg.define_btn("x");
    cfg.define_btn("h");
+   cfg.define_btn("d");
 
    opt.handle('c', cfg.m["config"].set,  cfg.m["config"].vstr);
    opt.handle('s', cfg.m["seed"].set,    cfg.m["seed"].vstr);
    opt.handle('l', cfg.m["lines"].set,   cfg.m["lines"].vstr);
    opt.handle('w', cfg.m["width"].set,   cfg.m["width"].vstr);
    opt.handle('f', cfg.m["frames"].set,  cfg.m["frames"].vstr);
+   opt.handle('p', cfg.m["print"].set,   cfg.m["print"].vstr);
    opt.handle('o', cfg.m["output"].set,  cfg.m["output"].vstr);
    opt.handle('t', cfg.m["delay"].set,   cfg.m["delay"].vstr);
    opt.handle('i', cfg.m["ignore"].set,  cfg.m["ignore"].vstr);
    opt.handle('v', cfg.m["verbose"].set, cfg.m["verbose"].vstr);
    opt.handle('r', cfg.m["r"].set);
+   opt.handle('R', cfg.m["R"].set);
    opt.handle('x', cfg.m["x"].set);
    opt.handle('h', cfg.m["h"].set);
+   opt.handle('d', cfg.m["d"].set);
 
    for (int i = 1; i < argc; i++) {
       Argv.push_back(string(argv[i]));
@@ -176,10 +183,27 @@ int main(int argc, char *argv[]) {
       cfg.set("seed", t);
    }
 
-   e = cfg.save();
-   if (e != NULL) {
-      cout << pn << ": Error: " << e << endl;
-      return 1;
+   if (cfg.get_btn("R")) {
+      srand(cfg.get_uint("seed"));
+      unsigned int li = 0; li--;
+      cfg.set("seed", (unsigned int) (rand() % li));
+   }
+
+   if (cfg.m["print"].set || cfg.get_uint("print") != 0) {
+      if (cfg.get_uint("print") != 0) {
+         cfg.set("frames", cfg.get_uint("ignore") + cfg.get_uint("print"));
+      }
+      else {
+         cfg.set("frames", 0);
+      }
+   }
+
+   if (cfg.get_btn("d") == false) {
+      e = cfg.save();
+      if (e != NULL) {
+         cout << pn << ": Error: " << e << endl;
+         return 1;
+      }
    }
 
    if (Argv.size() == 0) {
@@ -200,14 +224,18 @@ int main(int argc, char *argv[]) {
       "   -s <seed>   Set the seed passed to srand.\n"
       "   -w <width>  Set the number of characters printed per line.\n"
       "   -l <lines>  Set the number of lines printed per frame.\n"
-      "   -f <frames> Set the number of frames printed.\n"
+      "   -p <frames> Set the number of frames to print.\n"
+      "   -f <frame>  Set the last frame to be printed.\n"
       "   -i <ignore> Set the number of frames to skip.\n"
       "   -t <delay>  Set the time to wait between frames (seconds).\n"
       "   -o <output> Define the output characters. Ex: ' ~' for all,\n"
       "               'az' for lowercase alphabet, '09' for digits.\n"
       "   -c <config> Set a custom config file location. (set every time)\n"
       "   -r          Re-set the seed using current time.\n"
+      "   -R          Re-set the seed using current seed.\n"
+      "   -d          Do not overwrite the config file.\n"
       "   -x          Set width and lines to terminal size.\n"
+
    );
 
    cmds.handle(
@@ -265,7 +293,6 @@ void cmd_stream() {
       lmax = 1;
       nolines = true;
    }
-   cfg.set("lframe", (unsigned int) 1);
 
    while (true) {
       if (i != 0 && i >= frame) {skipframe = true;}
@@ -298,9 +325,9 @@ void cmd_stream() {
 
          if (l == lmax - 1) {
             cout.flush();
-            cfg.set("lframe", (unsigned int) frame);
+            lframe = frame;
 
-            if (ms != 0) {
+            if (ms != 0 && (fmax == 0 || frame < fmax)) {
                this_thread::sleep_for(chrono::milliseconds(ms));
             }
             frame++;
@@ -325,13 +352,18 @@ void callback_func_prompt(int sig) {
       cout << endl;
    }
    cout << "\n           --- paused ---\n";
-   cout << "\n(last frame: " << cfg.get_uint("lframe");
-   cout << ") [u: resume | k: exit]\n-> ";
+   cout << "\n(last frame: " << lframe;
+   cout << ") [u: resume | k: exit | s: save]\n-> ";
 
    while (cin >> o) {
       if (o < 97) {o += 32;}
 
       if (o == 'e' || o == 'q' || o == 'x' || o == 'k') {
+         exit(0);
+      }
+      if (o == 's' || o == 'o') {
+         cfg.set("ignore", lframe);
+         cfg.save();
          exit(0);
       }
       if (o == 'u' || o == 'r') {

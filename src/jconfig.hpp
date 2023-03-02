@@ -20,8 +20,10 @@ class jconfig {
 
       string file_path;
 
-      // types: int, uint, double, string, bool
-      // bool type has no arguments and toggles bval when it is set
+      // types: int, uint, double, string, bool, button
+      // bool and button types have no arguments.
+      // buttons are off unless set on the command line,
+      // bools are toggled by options on the command line.
 
       struct cfgval {
          string         type;

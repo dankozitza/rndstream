@@ -13,13 +13,16 @@ Options:
    -s <seed>   Set the seed passed to srand.
    -w <width>  Set the number of characters printed per line.
    -l <lines>  Set the number of lines printed per frame.
-   -f <frames> Set the number of frames printed.
+   -p <print>  Set the number of frames to print.
+   -f <frames> Set the last frame to be printed.
    -i <ignore> Set the number of frames to skip.
    -t <delay>  Set the time to wait between frames (seconds).
    -o <output> Define the output characters. Ex: ' ~' for all,
                'az' for lowercase alphabet, '09' for digits.
    -c <config> Set a custom config file location. (set every time)
-   -r          Re-set the seed using current time.
+   -r          Re-set the seed using the current time.
+   -R          Re-set the seed using the current seed.
+   -d          Do not overwrite the config file.
    -x          Set width and lines to terminal size.
 
 Commands:
@@ -36,7 +39,7 @@ Files:
    file use the -c option or manually change the 'config' option in
    /etc/rndstream.json.
 
-   To give all users read write permissions for the config file:
+   To give all users read and write permissions for the config file:
 
       sudo chmod 666 /etc/rndstream.json
 
