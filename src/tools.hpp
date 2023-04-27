@@ -14,9 +14,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <vector>
-#include <jsoncpp/json/json.h>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/reader.h>
+#include <json/json.h>
+#include <json/value.h>
+#include <json/reader.h>
 
 using namespace std;
 

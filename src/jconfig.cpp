@@ -342,7 +342,29 @@ string jconfig::getJSON() {
          r += "[";
          if (mit->second.type == "string") {
             for (int i = 0; i < mit->second.vstr.size(); i++) {
-               r += "\"" + mit->second.vstr[i] + "\"";
+
+               string str1 = mit->second.vstr[i];
+               string str2 = "";
+
+               for (int si = 0; si < str1.size(); si++) {
+                  if (str1[si] == '"') {
+                     str2 += "\\\"";
+                  }
+                  else if (str1[si] == '\\') {
+                     str2 += "\\\\";
+                  }
+                  else {
+                     str2 += str1[si];
+                  }
+               }
+
+               if (str1.size() != str2.size()) {
+                  str1 = str2;
+               }
+
+
+               r += "\"" + str1 + "\"";
+
                if (i != mit->second.vstr.size()-1) {r += ", ";}
             }
          }

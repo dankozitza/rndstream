@@ -37,16 +37,6 @@
 //
 //        rndstream gen help str
 //
-//  TODO: multiple rand functions
-//
-//  crand - re-seeds every n calls
-//  qrand - makes frequent calls to srand
-//  grand - filters output of rand by calling srand when finding 'bad' numbers
-//  mrand - keeps record of seeds and calls to rand. has accessible json index.
-//  lrand - uses dual calls to rand to produce long uints.
-//
-//  Verbose level 2:
-//     frames are printed as json objects that contain an array of strings
 //
 // Created by Daniel Kozitza
 //
@@ -99,6 +89,7 @@ int main(int argc, char *argv[]) {
    cfg.define_dbl("delay",   0.5);
    cfg.define_str("config",  cfg.file_path);
    cfg.define_str("output",  " ~");
+   cfg.define_str("output_list", "none");
    cfg.define_int("verbose", 0);
    cfg.define_btn("r");
    cfg.define_btn("R");
@@ -106,16 +97,17 @@ int main(int argc, char *argv[]) {
    cfg.define_btn("h");
    cfg.define_btn("d");
 
-   opt.handle('c', cfg.m["config"].set,  cfg.m["config"].vstr);
-   opt.handle('s', cfg.m["seed"].set,    cfg.m["seed"].vstr);
-   opt.handle('l', cfg.m["lines"].set,   cfg.m["lines"].vstr);
-   opt.handle('w', cfg.m["width"].set,   cfg.m["width"].vstr);
-   opt.handle('f', cfg.m["frames"].set,  cfg.m["frames"].vstr);
-   opt.handle('p', cfg.m["print"].set,   cfg.m["print"].vstr);
-   opt.handle('o', cfg.m["output"].set,  cfg.m["output"].vstr);
-   opt.handle('t', cfg.m["delay"].set,   cfg.m["delay"].vstr);
-   opt.handle('i', cfg.m["ignore"].set,  cfg.m["ignore"].vstr);
-   opt.handle('v', cfg.m["verbose"].set, cfg.m["verbose"].vstr);
+   opt.handle('c', cfg.m["config"].set,      cfg.m["config"].vstr);
+   opt.handle('s', cfg.m["seed"].set,        cfg.m["seed"].vstr);
+   opt.handle('l', cfg.m["lines"].set,       cfg.m["lines"].vstr);
+   opt.handle('w', cfg.m["width"].set,       cfg.m["width"].vstr);
+   opt.handle('f', cfg.m["frames"].set,      cfg.m["frames"].vstr);
+   opt.handle('p', cfg.m["print"].set,       cfg.m["print"].vstr);
+   opt.handle('o', cfg.m["output"].set,      cfg.m["output"].vstr);
+   opt.handle('O', cfg.m["output_list"].set, cfg.m["output_list"].vstr);
+   opt.handle('t', cfg.m["delay"].set,       cfg.m["delay"].vstr);
+   opt.handle('i', cfg.m["ignore"].set,      cfg.m["ignore"].vstr);
+   opt.handle('v', cfg.m["verbose"].set,     cfg.m["verbose"].vstr);
    opt.handle('r', cfg.m["r"].set);
    opt.handle('R', cfg.m["R"].set);
    opt.handle('x', cfg.m["x"].set);
@@ -169,6 +161,9 @@ int main(int argc, char *argv[]) {
       }
    }
 
+   if (cfg.m["output"].set)      { cfg.define_str("output_list", "none"); }
+   if (cfg.m["output_list"].set) { cfg.define_str("output", "none"); }
+
    e = cfg.convert();
    if (e != NULL) {
       cout << pn << ": Error: " << e << endl;
@@ -187,6 +182,16 @@ int main(int argc, char *argv[]) {
       srand(cfg.get_uint("seed"));
       unsigned int li = 0; li--;
       cfg.set("seed", (unsigned int) (rand() % li));
+   }
+
+   if (cfg.get_btn("d") == false) {
+      if (cfg.get_int("verbose") > 2) {
+         cout << "Seed: " << cfg.get_uint("seed") << endl;
+      }
+
+      if (cfg.get_int("verbose") == 1 && cfg.get_uint("ignore") > 0) {
+         cout << "Ignoring " << cfg.get_uint("ignore") << " lines.\n";
+      }
    }
 
    if (cfg.m["print"].set || cfg.get_uint("print") != 0) {
@@ -219,7 +224,7 @@ int main(int argc, char *argv[]) {
    cmds.set_max_line_width(ws.ws_col);
    cmds.set_cmds_help(
       "\n   Rndstream generates customized random text.\n\n"
-      "Usage:\n\n   rndstream <command> [arguments]\n\n"
+      "Usage:\n\n   rndstream [command] [-options]\n\n"
       "Options:\n\n"
       "   -s <seed>   Set the seed passed to srand.\n"
       "   -w <width>  Set the number of characters printed per line.\n"
@@ -228,15 +233,15 @@ int main(int argc, char *argv[]) {
       "   -f <frame>  Set the last frame to be printed.\n"
       "   -i <ignore> Set the number of frames to skip.\n"
       "   -t <delay>  Set the time to wait between frames (seconds).\n"
-      "   -o <output> Define the output characters. Ex: ' ~' for all,\n"
-      "               'az' for lowercase alphabet, '09' for digits.\n"
+      "   -o <output> Define the output as a range of characters.\n"
+      "               Ex: ' ~' for all, 'az' for alphabet, '09' for digits.\n"
+      "   -O <list>   Define the output as a list of characters.\n"
+      "               Ex: '123abc', '1123', '\\/|-    '.\n"
+      "   -x          Set width and lines to terminal size.\n"
       "   -c <config> Set a custom config file location. (set every time)\n"
       "   -r          Re-set the seed using current time.\n"
       "   -R          Re-set the seed using current seed.\n"
-      "   -d          Do not overwrite the config file.\n"
-      "   -x          Set width and lines to terminal size.\n"
-
-   );
+      "   -d          Do not overwrite the config file.\n");
 
    cmds.handle(
       "gen",
@@ -288,6 +293,10 @@ void cmd_stream() {
    struct winsize ws;
    bool skipframe = false;
    bool nolines = false;
+   bool output_is_range = true;
+   if (cfg.get_str("output") == "none") {
+      output_is_range = false;
+   }
 
    if (lmax == 0) {
       lmax = 1;
@@ -306,7 +315,7 @@ void cmd_stream() {
       if (wmax == 0) {wmax = 1;}
 
       for (unsigned int l = 0; l < lmax; l++) {
-         if (!skipframe && v >= 1 && l == 0 && !nolines) {
+         if (!skipframe && v >= 2 && l == 0 && !nolines) {
             cout << "frame: " << frame << endl;
          }
 
@@ -317,9 +326,18 @@ void cmd_stream() {
          }
 
          for (unsigned int w = 0; w < wmax; w++) {
-            cout << char(rand() 
-                  % (cfg.get_str("output")[1] - cfg.get_str("output")[0] + 1)
-                  + cfg.get_str("output")[0]);
+            if (output_is_range && cfg.get_str("output").size() == 2) {
+               cout << char(rand() 
+                     % (cfg.get_str("output")[1] - cfg.get_str("output")[0] + 1)
+                     + cfg.get_str("output")[0]);
+            }
+            else if (!output_is_range && cfg.get_str("output_list").size() > 0) {
+               cout << cfg.get_str("output_list")[rand() % cfg.get_str("output_list").size()];
+            }
+            else {
+               cout << pn << ": Error: Indorrect output format.\n";
+               return;
+            }
          }
          if (!nolines) {cout << endl;}
 
@@ -347,13 +365,21 @@ void cmd_env() {
 
 void callback_func_prompt(int sig) {
    char o = 'e';
+   struct winsize ws;
+   ioctl(0, TIOCGWINSZ, &ws);
 
    if (cfg.get_uint("lines") == 0) {
       cout << endl;
    }
    cout << "\n           --- paused ---\n";
+
    cout << "\n(last frame: " << lframe;
-   cout << ") [u: resume | k: exit | s: save]\n-> ";
+
+   if (cfg.get_btn("x")) {
+      cout << ") (frame size: " << ws.ws_col << "x" << ws.ws_row;
+   }
+
+   cout << ")\n- Type key and press enter: [r: resume | e: exit | s: save]\n-> ";
 
    while (cin >> o) {
       if (o < 97) {o += 32;}
