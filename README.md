@@ -6,7 +6,7 @@ rndstream
 
 Usage:
 
-   rndstream <command> [arguments]
+   rndstream [command] [-options]
 
 Options:
 
@@ -19,6 +19,8 @@ Options:
    -t <delay>  Set the time to wait between frames (seconds).
    -o <output> Define the output characters. Ex: ' ~' for all,
                'az' for lowercase alphabet, '09' for digits.
+   -O <list>   Define the output as a list of characters.
+               Ex: '123abc', '1123', '\/|-    '.
    -c <config> Set a custom config file location. (set every time)
    -r          Re-set the seed using the current time.
    -R          Re-set the seed using the current seed.
@@ -34,14 +36,10 @@ Use "./rndstream help [command]" for more information about a command.
 
 Files:
 
-   /etc/rndstream.json is the default configuration file and it must exist
+   $HOME/.rndstream.json is the default configuration file and it must exist
    for rndstream to operate correctly. To override the use of this config
    file use the -c option or manually change the 'config' option in
-   /etc/rndstream.json.
-
-   To give all users read and write permissions for the config file:
-
-      sudo chmod 666 /etc/rndstream.json
+   .rndstream.json.
 
 Build:
 

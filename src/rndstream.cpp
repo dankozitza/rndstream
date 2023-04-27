@@ -63,7 +63,7 @@ void cmd_env();
 
 string  pn;
 unsigned int lframe = 1;
-jconfig cfg("/etc/rndstream.json");
+jconfig cfg("rndstream.json");
 
 int main(int argc, char *argv[]) {
    vector<string> Argv(0);
@@ -79,6 +79,8 @@ int main(int argc, char *argv[]) {
 
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
+
+   cfg.file_path = string(getenv("HOME")) + string("/.rndstream.json");
 
    cfg.define_uint("seed",   t);
    cfg.define_uint("lines",  0);
