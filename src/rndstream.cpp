@@ -296,6 +296,8 @@ int main(int argc, char *argv[]) {
          return;
       }
       if (argv[0] == "help" || argv[0] == "-h") {
+         argv.resize(1);
+         argv[0] = "file";
          cmds2.run("help", argv, cout);
          return;
       }
