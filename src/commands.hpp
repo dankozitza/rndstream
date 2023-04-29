@@ -19,7 +19,10 @@ class commands {
       struct Command {
          void (*func_na)();                // function with no arguments
          void (*func_wa)(vector<string>&); // function with arguments
+         void (*func_wo)(ostream&);
+         void (*func_woa)(ostream&, vector<string>&);
          bool has_arguments;
+         bool has_output;
          string synopsis;
          string usage;
          string description;
@@ -48,11 +51,18 @@ class commands {
             string description = "");
       void handle(
             string cmd,
+            void (*func)(ostream& out),
+            string synopsis,
+            string usage,
+            string description = "");
+      void handle(
+            string cmd,
             void (*func)(vector<string>&),
             string synopsis,
             string usage,
             string description = "");
       void run(string cmd, vector<string>& arguments);
+      void run(string cmd, vector<string>& arguments, ostream& out);
       void default_help(vector<string>& arg);
       bool resolved();
       void reset();

@@ -44,6 +44,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <sys/ioctl.h>
 #include <chrono>
 #include <thread>
@@ -58,7 +59,8 @@ using namespace tools;
 void callback_func_prompt(int sig);
 
 void cmd_gen(vector<string>& argv);
-void cmd_stream();
+void cmd_stream(ostream& out);
+void cmd_file(ostream& file);
 void cmd_env();
 
 string  pn;
@@ -256,7 +258,7 @@ int main(int argc, char *argv[]) {
       "Display the configuration file.",
       "env");
 
-   cmds.run(cmd, Argv);
+   cmds.run(cmd, Argv, cout);
 
    return 0;
 }
@@ -277,11 +279,54 @@ int main(int argc, char *argv[]) {
          "Generate a stream of random text and print to stdout.",
          "str [-options]");
 
-   cmds2.run(cmd2, argv);
+   cmds2.handle(
+         "file",
+         cmd_file,
+         "Generate a stream of random text and print to file.",
+         "file <file_name> [-options]");
+
+   // a problem arises
+   if (cmd2 == "str") {
+      cmds2.run(cmd2, argv, cout);
+   }
+   else if (cmd2 == "file") {
+      // attempt to open file in argv 3
+      if (argv.size() < 1) {
+         cout << pn << ": Command requires a file name.\n";
+         return;
+      }
+      if (argv[0] == "help" || argv[0] == "-h") {
+         cmds2.run("help", argv, cout);
+         return;
+      }
+
+      cfg.define_dbl("delay", 0.0);
+
+      if (cfg.get_uint("frames") == 0) {
+         cout << pn << ": Frame (-f #) is not set. Program will run indefinately.\n";
+         return;
+      }
+
+      ofstream fout;
+      fout.open(argv[0].c_str(), ofstream::out);
+      if (!fout.is_open()) {
+         cout << pn << ": Output file cannot be opened.";
+         return;
+      }
+      cmds2.run(cmd2, argv, fout);
+   }
+   else {
+      cmds2.run("help", argv, cout);
+   }
    return;
 }
 
-void cmd_stream() {
+void cmd_file(ostream& out) {
+   cmd_stream(out);
+   return;
+}
+
+void cmd_stream(ostream& out) {
 
    srand(cfg.get_uint("seed"));
    double       wt    = cfg.get_dbl("delay");
@@ -318,7 +363,7 @@ void cmd_stream() {
 
       for (unsigned int l = 0; l < lmax; l++) {
          if (!skipframe && v >= 2 && l == 0 && !nolines) {
-            cout << "frame: " << frame << endl;
+            out << "frame: " << frame << endl;
          }
 
          if (skipframe) {
@@ -329,22 +374,22 @@ void cmd_stream() {
 
          for (unsigned int w = 0; w < wmax; w++) {
             if (output_is_range && cfg.get_str("output").size() == 2) {
-               cout << char(rand() 
+               out << char(rand() 
                      % (cfg.get_str("output")[1] - cfg.get_str("output")[0] + 1)
                      + cfg.get_str("output")[0]);
             }
             else if (!output_is_range && cfg.get_str("output_list").size() > 0) {
-               cout << cfg.get_str("output_list")[rand() % cfg.get_str("output_list").size()];
+               out << cfg.get_str("output_list")[rand() % cfg.get_str("output_list").size()];
             }
             else {
-               cout << pn << ": Error: Indorrect output format.\n";
+               out << pn << ": Error: Indorrect output format.\n";
                return;
             }
          }
-         if (!nolines) {cout << endl;}
+         if (!nolines) {out << endl;}
 
          if (l == lmax - 1) {
-            cout.flush();
+            out.flush();
             lframe = frame;
 
             if (ms != 0 && (fmax == 0 || frame < fmax)) {

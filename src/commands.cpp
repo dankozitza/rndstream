@@ -12,6 +12,8 @@
 
 void dummy_func() {};
 void dummy_func(vector<string>& j) {};
+void dummy_func(ostream& out) {};
+void dummy_func(ostream& out, vector<string>& j) {};
 
 commands::commands() {
    cmd_name_width = 10;
@@ -147,7 +149,8 @@ void commands::handle(
       string usage,
       string description) {
 
-   Command tmp = {dummy_func, func, true, synopsis, usage, description};
+   Command tmp = {dummy_func, func, dummy_func, dummy_func,
+                  true, false, synopsis, usage, description};
    cmds[cmd]   = tmp;
 }
 
@@ -158,7 +161,20 @@ void commands::handle(
       string usage,
       string description) {
 
-   Command tmp = {func, dummy_func, false, synopsis, usage, description};
+   Command tmp = {func, dummy_func, dummy_func, dummy_func,
+                  false, false, synopsis, usage, description};
+   cmds[cmd]   = tmp;
+}
+
+void commands::handle(
+      string cmd,
+      void (*func)(ostream&),
+      string synopsis,
+      string usage,
+      string description) {
+
+   Command tmp = {dummy_func, dummy_func, func, dummy_func,
+                  false, true, synopsis, usage, description};
    cmds[cmd]   = tmp;
 }
 
@@ -171,10 +187,47 @@ void commands::run(string cmd, vector<string>& arguments) {
 
    else if (it != cmds.end()) {
       is_resolved = true;
-      if (cmds[cmd].has_arguments)
+      if (cmds[cmd].has_arguments) {
          cmds[cmd].func_wa(arguments);
-      else
+      }
+      else {
          cmds[cmd].func_na();
+      }
+   }
+   else {
+      cout << "commands::run: Unknown command '" << cmd << "'. Try '";
+      if (program_name != "")
+         cout << program_name << " ";
+      cout << "help'.\n";
+   }
+}
+
+void commands::run(string cmd, vector<string>& arguments, ostream& out) {
+   map<string, Command>::iterator it = cmds.find(cmd);
+
+   // if help has been defined by the user do not run default_help
+   if (cmd == "help" && it == cmds.end()) {
+      default_help(arguments);
+   }
+
+   else if (it != cmds.end()) {
+      is_resolved = true;
+      if (cmds[cmd].has_arguments) {
+         if (cmds[cmd].has_output) {
+            cmds[cmd].func_woa(out, arguments);
+         }
+         else {
+            cmds[cmd].func_wa(arguments);
+         }
+      }
+      else {
+         if (cmds[cmd].has_output) {
+            cmds[cmd].func_wo(out);
+         }
+         else {
+            cmds[cmd].func_na();
+         }
+      }
    }
    else {
       cout << "commands::run: Unknown command '" << cmd << "'. Try '";
