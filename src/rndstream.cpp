@@ -226,6 +226,7 @@ int main(int argc, char *argv[]) {
 
    cmds.set_program_name(pn);
    cmds.set_max_line_width(ws.ws_col);
+   cmds.set_cmd_name_width(5);
    cmds.set_cmds_help(
       "\n   Rndstream generates customized random text.\n\n"
       "Usage:\n\n   rndstream [command] [-options]\n\n"
@@ -263,13 +264,23 @@ int main(int argc, char *argv[]) {
    return 0;
 }
  void cmd_gen(vector<string>& argv) {
+   struct winsize ws;
+   ioctl(0, TIOCGWINSZ, &ws);
+
    commands cmds2;
    cmds2.set_program_name(pn + " gen");
+   cmds2.set_max_line_width(ws.ws_col);
+   cmds2.set_cmd_name_width(5);
    string cmd2 = "help";
 
    if (argv.size() > 0) {
       cmd2 = argv[0];
       argv.erase(argv.begin());
+   }
+
+   if (argv[0] == "help") {
+      cmd2 = "help";
+      argv.clear();
    }
 
    cmds2.set_cmds_help("\nUsage:\n\n   " + pn + " gen <command> [-options]\n");
