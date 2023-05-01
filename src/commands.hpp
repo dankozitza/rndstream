@@ -18,9 +18,9 @@ class commands {
    private:
       struct Command {
          void (*func_na)();                // function with no arguments
-         void (*func_wa)(vector<string>&); // function with arguments
-         void (*func_wo)(ostream&);
-         void (*func_woa)(ostream&, vector<string>&);
+         void (*func_wa)(vector<string>&); // function with argument list
+         void (*func_wo)(ostream&);        // function with output stream
+         void (*func_woa)(ostream&, vector<string>&); // function with both
          bool has_arguments;
          bool has_output;
          string synopsis;
@@ -58,6 +58,12 @@ class commands {
       void handle(
             string cmd,
             void (*func)(vector<string>&),
+            string synopsis,
+            string usage,
+            string description = "");
+      void handle(
+            string cmd,
+            void (*func)(ostream&, vector<string>&),
             string synopsis,
             string usage,
             string description = "");

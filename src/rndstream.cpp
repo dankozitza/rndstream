@@ -285,7 +285,6 @@ int main(int argc, char *argv[]) {
          "Generate a stream of random text and print to file.",
          "file <file_name> [-options]");
 
-   // a problem arises
    if (cmd2 == "str") {
       cmds2.run(cmd2, argv, cout);
    }

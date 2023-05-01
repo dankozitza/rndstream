@@ -178,6 +178,18 @@ void commands::handle(
    cmds[cmd]   = tmp;
 }
 
+void commands::handle(
+      string cmd,
+      void (*func)(ostream&, vector<string>&),
+      string synopsis,
+      string usage,
+      string description) {
+
+   Command tmp = {dummy_func, dummy_func, dummy_func, func,
+                  true, true, synopsis, usage, description};
+   cmds[cmd]   = tmp;
+}
+
 void commands::run(string cmd, vector<string>& arguments) {
    map<string, Command>::iterator it = cmds.find(cmd);
 
