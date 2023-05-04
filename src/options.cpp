@@ -11,10 +11,21 @@ options::options() {
    opts_found = 0;
 }
 
+bool options::option_set(char option_entry) {
+   return *opts[option_entry].option_set;
+}
+size_t options::get_opt_times_set(char option_entry) {
+   return opts[option_entry].times;
+}
+size_t  options::get_opt_arguments(char option_entry) {
+   return opts[option_entry].opt_args->size();
+}
+
 void options::handle(char option_entry, bool& option_set) {
    Option tmp;
    tmp.option_set = &option_set;
    tmp.has_arguments = false;
+   tmp.times = 0;
    opts[option_entry] = tmp;
 }
 
@@ -33,6 +44,7 @@ void options::handle(
    tmp.option_set = &option_set;
    tmp.has_arguments = true;
    tmp.opt_args = &option_args;
+   tmp.times = 0;
    opts[option_entry] = tmp;
 }
 
@@ -55,6 +67,7 @@ tools::Error options::evaluate(vector<string>& arguments) {
       size_t removed = 0;
       for (size_t j = 1; j < arguments[i].size(); ++j) {
          char c = arguments[i][j];
+         opts[c].times++;
          Option opt = opts[c];
          if (opt.option_set != NULL) {
             opts_found++;

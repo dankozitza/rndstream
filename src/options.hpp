@@ -72,6 +72,7 @@ class options {
          bool* option_set;
          bool has_arguments;
          vector<string>* opt_args;
+         size_t times;
       };
 
       size_t args_removed; // number of entries removed from argv during eval
@@ -80,6 +81,10 @@ class options {
 
    public:
       options();
+
+      bool   option_set(char option_entry);
+      size_t get_opt_times_set(char option_entry);
+      size_t get_opt_arguments(char option_entry);
 
       void handle(char option_entry, bool& option_set);
       void handle(char option_entry, bool& option_set, string& argument);

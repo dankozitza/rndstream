@@ -182,20 +182,29 @@ int main(int argc, char *argv[]) {
       cfg.set("seed", t);
    }
 
-   if (cfg.get_btn("R")) {
-      srand(cfg.get_uint("seed"));
-      unsigned int li = 0; li--;
-      cfg.set("seed", (unsigned int) (rand() % li));
+   if (cfg.get_int("verbose") >= 2) {
+      cout << "Seed: " << cfg.get_uint("seed") << endl;
    }
 
-   if (cfg.get_btn("d") == false) {
-      if (cfg.get_int("verbose") > 2) {
-         cout << "Seed: " << cfg.get_uint("seed") << endl;
+   if (cfg.get_btn("R")) {
+
+      if (cfg.get_int("verbose") >= 2 && opt.get_opt_times_set('R') > 1) {
+         cout << "Re-seeding " << opt.get_opt_times_set('R') << " times.\n";
       }
 
-      if (cfg.get_int("verbose") == 1 && cfg.get_uint("ignore") > 0) {
-         cout << "Ignoring " << cfg.get_uint("ignore") << " lines.\n";
+      for (size_t i = 0; i < opt.get_opt_times_set('R'); i++) {
+         srand(cfg.get_uint("seed"));
+         unsigned int li = 0; li--;
+         cfg.set("seed", (unsigned int) (rand() % li));
+
+         if (cfg.get_int("verbose") >= 1) {
+            cout << "New seed: " << cfg.get_uint("seed") << "\n";
+         }
       }
+   }
+
+   if (cfg.get_int("verbose") == 1 && cfg.get_uint("ignore") > 0) {
+      cout << "Ignoring " << cfg.get_uint("ignore") << " lines.\n";
    }
 
    if (cfg.m["print"].set || cfg.get_uint("print") != 0) {
