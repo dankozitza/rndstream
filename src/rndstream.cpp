@@ -100,6 +100,8 @@ int main(int argc, char *argv[]) {
    cfg.define_btn("x");
    cfg.define_btn("h");
    cfg.define_btn("d");
+   cfg.define_btn("n");
+   cfg.define_btn("b");
 
    opt.handle('c', cfg.m["config"].set,      cfg.m["config"].vstr);
    opt.handle('s', cfg.m["seed"].set,        cfg.m["seed"].vstr);
@@ -117,6 +119,8 @@ int main(int argc, char *argv[]) {
    opt.handle('x', cfg.m["x"].set);
    opt.handle('h', cfg.m["h"].set);
    opt.handle('d', cfg.m["d"].set);
+   opt.handle('n', cfg.m["n"].set);
+   opt.handle('b', cfg.m["b"].set);
 
    for (int i = 1; i < argc; i++) {
       Argv.push_back(string(argv[i]));
@@ -190,10 +194,6 @@ int main(int argc, char *argv[]) {
 
    if (cfg.get_btn("R")) {
 
-      if (cfg.get_int("verbose") >= 2 && opt.get_opt_times_set('R') > 1) {
-         cout << "Re-seeding " << opt.get_opt_times_set('R') << " times.\n";
-      }
-
       for (size_t i = 0; i < opt.get_opt_times_set('R'); i++) {
          srand(cfg.get_uint("seed"));
          unsigned int li = 0; li--;
@@ -212,6 +212,16 @@ int main(int argc, char *argv[]) {
       else {
          cfg.set("frames", 0);
       }
+   }
+
+   if (cfg.get_btn("n")) {
+      cfg.set("ignore", cfg.get_uint("ignore") + 1);
+      cfg.set("frames", cfg.get_uint("frames") + 1);
+   }
+
+   if (cfg.get_btn("b") && cfg.get_uint("ignore") > 0) {
+      cfg.set("ignore", cfg.get_uint("ignore") - 1);
+      cfg.set("frames", cfg.get_uint("frames") - 1);
    }
 
    if (cfg.get_btn("d") == false) {
@@ -253,7 +263,9 @@ int main(int argc, char *argv[]) {
       "   -c <config> " + fold(15, ws.ws_col, "Set a custom config file location. (set every time)") + "\n"
       "   -r          " + fold(15, ws.ws_col, "Re-set the seed using current time.") + "\n"
       "   -R          " + fold(15, ws.ws_col, "Re-set the seed using current seed.") + "\n"
-      "   -d          " + fold(15, ws.ws_col, "Do not overwrite the config file.") + "\n");
+      "   -d          " + fold(15, ws.ws_col, "Do not overwrite the config file.") + "\n"
+      "   -n          " + fold(15, ws.ws_col, "Go to the next frame.") + "\n"
+      "   -b          " + fold(15, ws.ws_col, "Go to the last frame.") + "\n");
 
    cmds.handle(
       "gen",

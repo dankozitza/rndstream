@@ -26,6 +26,8 @@ Options:
    -R          Re-set the seed using the current seed.
    -d          Do not overwrite the config file.
    -x          Set width and lines to terminal size.
+   -n          Go to the next frame.
+   -b          Go to the last frame.
 
 Commands:
 
