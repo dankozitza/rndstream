@@ -80,8 +80,10 @@ class options {
       map<char, Option> opts;
 
    public:
+
       options();
 
+      void   clear();
       bool   option_set(char option_entry);
       size_t get_opt_times_set(char option_entry);
       size_t get_opt_arguments(char option_entry);

@@ -256,7 +256,7 @@ tools::Error jconfig::load() {
 
    if (rjv.isObject()) {
       Json::Value::iterator rjvit = rjv.begin();
-      for (rjvit; rjvit != rjv.end(); rjvit++) {
+      for (; rjvit != rjv.end(); rjvit++) {
 
          if (!rjvit.key().isString()) {
             return "jconfig: Config key is not a string.";

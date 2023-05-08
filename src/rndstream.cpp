@@ -158,6 +158,7 @@ int main(int argc, char *argv[]) {
          }
       }
 
+      opt.clear();
       e = opt.evaluate(Argv);
       if (e != NULL) {
          cout << pn << ": Error: " << e << endl;
@@ -182,7 +183,8 @@ int main(int argc, char *argv[]) {
       cfg.set("seed", t);
    }
 
-   if (cfg.get_int("verbose") >= 2) {
+   if ((cfg.get_int("verbose") >= 2) ||
+       (cfg.get_int("verbose") >= 1 && cfg.get_btn("r"))) {
       cout << "Seed: " << cfg.get_uint("seed") << endl;
    }
 
@@ -198,13 +200,9 @@ int main(int argc, char *argv[]) {
          cfg.set("seed", (unsigned int) (rand() % li));
 
          if (cfg.get_int("verbose") >= 1) {
-            cout << "New seed: " << cfg.get_uint("seed") << "\n";
+            cout << "Generated seed: " << cfg.get_uint("seed") << "\n";
          }
       }
-   }
-
-   if (cfg.get_int("verbose") == 1 && cfg.get_uint("ignore") > 0) {
-      cout << "Ignoring " << cfg.get_uint("ignore") << " lines.\n";
    }
 
    if (cfg.m["print"].set || cfg.get_uint("print") != 0) {
@@ -290,6 +288,9 @@ int main(int argc, char *argv[]) {
    if (argv[0] == "help") {
       cmd2 = "help";
       argv.clear();
+   }
+   else if (cmd2 != "help" && cfg.get_int("verbose") == 1 && cfg.get_uint("ignore") > 0) {
+      cout << "Ignoring " << cfg.get_uint("ignore") << " frames.\n";
    }
 
    cmds2.set_cmds_help("\nUsage:\n\n   " + pn + " gen <command> [-options]\n");

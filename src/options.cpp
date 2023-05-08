@@ -11,6 +11,17 @@ options::options() {
    opts_found = 0;
 }
 
+void options::clear() {
+   args_removed = 0;
+   opts_found = 0;
+   map<char, Option>::iterator it;
+   for (it= opts.begin(); it != opts.end(); it++) {
+      *it->second.option_set = false;
+      it->second.times = 0;
+   }
+   return;
+}
+
 bool options::option_set(char option_entry) {
    return *opts[option_entry].option_set;
 }
@@ -49,6 +60,7 @@ void options::handle(
 }
 
 tools::Error options::evaluate(vector<string>& arguments) {
+
    vector<string> new_arguments;
    size_t i;
    for (i = 0; i < arguments.size(); ++i) {
@@ -114,7 +126,7 @@ tools::Error options::evaluate(vector<string>& arguments) {
    if (i == 0)
       return NULL;
    // add remaining arguments in case -- option was given
-   for (i; i < arguments.size(); ++i) {
+   for (; i < arguments.size(); ++i) {
       new_arguments.push_back(arguments[i]);
    }
    arguments.resize(0);
