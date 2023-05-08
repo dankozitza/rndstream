@@ -214,14 +214,16 @@ int main(int argc, char *argv[]) {
       }
    }
 
-   if (cfg.get_btn("n")) {
+   for (size_t i = 0; i < opt.get_opt_times_set('n'); i++) {
       cfg.set("ignore", cfg.get_uint("ignore") + 1);
       cfg.set("frames", cfg.get_uint("frames") + 1);
    }
 
    if (cfg.get_btn("b") && cfg.get_uint("ignore") > 0) {
-      cfg.set("ignore", cfg.get_uint("ignore") - 1);
-      cfg.set("frames", cfg.get_uint("frames") - 1);
+      for (size_t i = 0; i < opt.get_opt_times_set('b'); i++) {
+         cfg.set("ignore", cfg.get_uint("ignore") - 1);
+         cfg.set("frames", cfg.get_uint("frames") - 1);
+      }
    }
 
    if (cfg.get_btn("d") == false) {
