@@ -189,16 +189,32 @@ int main(int argc, char *argv[]) {
       string outarg = cfg.m["output_str"].vstr[0];
       cfg.m["output_vstr"].vstr.clear();
       string result = "";
-      for (size_t i = 0; i < outarg.size(); i++) {
-         
-         if (i+1 < outarg.size()) {
-         if (outarg[i] == '\\' && outarg[i+1] == ',') {
-            result += ',';
-            i++;
+      for (int i = 0; i < outarg.size(); i++) {
+
+         if (i+3 < outarg.size() && outarg.substr(i, 4) == "\\\\\\,") {
+            result += "\\,";
+            i += 3;
             if (i+1 >= outarg.size()) {
                cfg.m["output_vstr"].vstr.push_back(result);
             }
             continue;
+         }
+         
+         if (i+1 < outarg.size()) {
+         if (outarg[i] == '\\' && outarg[i+1] == ',') {
+
+            if (i-1 < 0 || outarg[i-1] != '\\') {
+
+               result += ',';
+               i++;
+               if (i+1 >= outarg.size()) {
+                  cfg.m["output_vstr"].vstr.push_back(result);
+               }
+               continue;
+            }
+            else if (i-1 >= 0 && outarg[i-1] == '\\') {
+               continue;
+            }
          }}
 
          if (outarg[i] == ',') {
