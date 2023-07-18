@@ -72,7 +72,11 @@ int main(int argc, char *argv[]) {
    options        opt;
    commands       cmds;
    unsigned int   t = time(NULL);
+<<<<<<< HEAD
    jconfig        cfg("/tmp/rndstream.json");
+=======
+   bool           display_help = false;
+>>>>>>> 5e2ee394eb58f5f8bdf6f852d07f3c07637d2948
    Error          e;
    pn = argv[0];
 
@@ -94,6 +98,8 @@ int main(int argc, char *argv[]) {
    cfg.define_str("config",  cfg.file_path);
    cfg.define_str("output",  " ~");
    cfg.define_str("output_list", "none");
+   cfg.define_str("output_str", "none");
+   cfg.define_vstr("output_vstr", {"none"});
    cfg.define_int("verbose", 0);
    cfg.define_btn("r");
    cfg.define_btn("R");
@@ -111,6 +117,7 @@ int main(int argc, char *argv[]) {
    opt.handle('p', cfg.m["print"].set,       cfg.m["print"].vstr);
    opt.handle('o', cfg.m["output"].set,      cfg.m["output"].vstr);
    opt.handle('O', cfg.m["output_list"].set, cfg.m["output_list"].vstr);
+   opt.handle('S', cfg.m["output_str"].set,  cfg.m["output_str"].vstr);
    opt.handle('t', cfg.m["delay"].set,       cfg.m["delay"].vstr);
    opt.handle('i', cfg.m["ignore"].set,      cfg.m["ignore"].vstr);
    opt.handle('v', cfg.m["verbose"].set,     cfg.m["verbose"].vstr);
@@ -170,8 +177,63 @@ int main(int argc, char *argv[]) {
       }
    }
 
-   if (cfg.m["output"].set)      { cfg.define_str("output_list", "none"); }
-   if (cfg.m["output_list"].set) { cfg.define_str("output", "none"); }
+   if (cfg.m["output"].set)      {
+      cfg.define_str("output_list", "none");
+      cfg.define_str("output_str", "none");
+   }
+   if (cfg.m["output_list"].set) {
+      cfg.define_str("output", "none");
+      cfg.define_str("output_str", "none");
+   }
+   if (cfg.m["output_str"].set) {
+      cfg.define_str("output", "none");
+      cfg.define_str("output_list", "none");
+
+      string outarg = cfg.m["output_str"].vstr[0];
+      cfg.m["output_vstr"].vstr.clear();
+      string result = "";
+      for (int i = 0; i < outarg.size(); i++) {
+
+         if (i+3 < outarg.size() && outarg.substr(i, 4) == "\\\\\\,") {
+            result += "\\,";
+            i += 3;
+            if (i+1 >= outarg.size()) {
+               cfg.m["output_vstr"].vstr.push_back(result);
+            }
+            continue;
+         }
+         
+         if (i+1 < outarg.size()) {
+         if (outarg[i] == '\\' && outarg[i+1] == ',') {
+
+            if (i-1 < 0 || outarg[i-1] != '\\') {
+
+               result += ',';
+               i++;
+               if (i+1 >= outarg.size()) {
+                  cfg.m["output_vstr"].vstr.push_back(result);
+               }
+               continue;
+            }
+            else if (i-1 >= 0 && outarg[i-1] == '\\') {
+               continue;
+            }
+         }}
+
+         if (outarg[i] == ',') {
+            cfg.m["output_vstr"].vstr.push_back(result);
+            result = "";
+            continue;
+         }
+
+         result += outarg[i];
+
+         if (i == outarg.size() - 1) {
+            cfg.m["output_vstr"].vstr.push_back(result);
+            result = "";
+         }
+      }
+   }
 
    e = cfg.convert();
    if (e != NULL) {
@@ -182,6 +244,9 @@ int main(int argc, char *argv[]) {
    if (cfg.get_btn("h")) {
       Argv.push_back("help");
    }
+   for (size_t i = 0; i < Argv.size(); i++) {
+      if (Argv[i] == "help") { display_help = true; }
+   }
 
    if (cfg.get_btn("r")) {
       cfg.set("seed", t);
@@ -189,7 +254,10 @@ int main(int argc, char *argv[]) {
 
    if ((cfg.get_int("verbose") >= 2) ||
        (cfg.get_int("verbose") >= 1 && cfg.get_btn("r"))) {
-      cout << "Seed: " << cfg.get_uint("seed") << endl;
+
+      if (!display_help) {
+         cout << "Seed: " << cfg.get_uint("seed") << endl;
+      }
    }
 
    if (cfg.get_btn("R")) {
@@ -259,6 +327,8 @@ int main(int argc, char *argv[]) {
       "               " + fold(15, ws.ws_col, "Ex: ' ~' for all, 'az' for alphabet, '09' for digits.") + "\n"
       "   -O <list>   " + fold(15, ws.ws_col, "Define the output as a list of characters.") + "\n"
       "               " + fold(15, ws.ws_col, "Ex: '123abc', '1123', '\\/|-    '.") + "\n"
+      "   -S <string> " + fold(15, ws.ws_col, "Define the output as a comma separated list of strings.") + "\n"
+      "               " + fold(15, ws.ws_col, "Ex: '70 ,80 ,90 ', 'G ,G ,C ,Em,Am,D '.") + "\n"
       "   -x          " + fold(15, ws.ws_col, "Set width and lines to terminal size.") + "\n"
       "   -c <config> " + fold(15, ws.ws_col, "Set a custom config file location. (set every time)") + "\n"
       "   -r          " + fold(15, ws.ws_col, "Re-set the seed using current time.") + "\n"
@@ -376,9 +446,9 @@ void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv) {
    bool skipframe = false;
    bool nolines = false;
    bool output_is_range = true;
-   if (cfg.get_str("output") == "none") {
-      output_is_range = false;
-   }
+   bool output_is_list  = true;
+   if (cfg.get_str("output")     == "none") { output_is_range = false; }
+   if (cfg.get_str("output_list") == "none") { output_is_list  = false; }
 
    if (lmax == 0) {
       lmax = 1;
@@ -410,14 +480,19 @@ void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv) {
          for (unsigned int w = 0; w < wmax; w++) {
             if (output_is_range && cfg.get_str("output").size() == 2) {
                out << char(rand() 
-                     % (cfg.get_str("output")[1] - cfg.get_str("output")[0] + 1)
+                     % (cfg.get_str("output")[1]-cfg.get_str("output")[0]+1)
                      + cfg.get_str("output")[0]);
             }
-            else if (!output_is_range && cfg.get_str("output_list").size() > 0) {
-               out << cfg.get_str("output_list")[rand() % cfg.get_str("output_list").size()];
+            else if (output_is_list && cfg.get_str("output_list").size() > 0) {
+               out << cfg.get_str("output_list")[
+                        rand() % cfg.get_str("output_list").size()];
+            }
+            else if (cfg.get_vstr("output_vstr").size() > 0) {
+               out << cfg.get_vstr("output_vstr")[
+                        rand() % cfg.get_vstr("output_vstr").size()];
             }
             else {
-               out << pn << ": Error: Indorrect output format.\n";
+               out << pn << ": Error: Incorrect output format.\n";
                return;
             }
          }

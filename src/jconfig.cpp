@@ -259,7 +259,7 @@ tools::Error jconfig::load() {
       for (; rjvit != rjv.end(); rjvit++) {
 
          if (!rjvit.key().isString()) {
-            return "jconfig: Config key is not a string.";
+            return error("jconfig: Config key is not a string.");
          }
          string key = rjvit.key().asString();
 
@@ -276,7 +276,7 @@ tools::Error jconfig::load() {
 
             for (int i = 0; i < elmntv.size(); i++) {
                if (!elmntv[i].isString()) {
-                  return "jconfig: Config value is not a string.";
+                  return error("jconfig: Config value is not a string.");
                }
                m[key].vstr[i] = elmntv[i].asString();
             }
@@ -286,7 +286,7 @@ tools::Error jconfig::load() {
 
             for (int i = 0; i < elmntv.size(); i++) {
                if (!elmntv[i].isInt()) {
-                  return "jconfig: Config value is not an int.";
+                  return error("jconfig: Config value is not an int.");
                }
                m[key].vint[i] = elmntv[i].asInt();
             }
@@ -296,7 +296,7 @@ tools::Error jconfig::load() {
 
             for (int i = 0; i < elmntv.size(); i++) {
                if (!elmntv[i].isUInt()) {
-                  return "jconfig: Config value is not an uint.";
+                  return error("jconfig: Config value is not an uint.");
                }
                m[key].vuint[i] = elmntv[i].asUInt();
             }
@@ -306,7 +306,7 @@ tools::Error jconfig::load() {
 
             for (int i = 0; i < elmntv.size(); i++) {
                if (!elmntv[i].isDouble()) {
-                  return "jconfig: Config value is not a double.";
+                  return error("jconfig: Config value is not a double.");
                }
                m[key].vdbl[i] = elmntv[i].asDouble();
             }
