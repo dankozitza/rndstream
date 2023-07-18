@@ -72,11 +72,8 @@ int main(int argc, char *argv[]) {
    options        opt;
    commands       cmds;
    unsigned int   t = time(NULL);
-<<<<<<< HEAD
    jconfig        cfg("/tmp/rndstream.json");
-=======
    bool           display_help = false;
->>>>>>> 5e2ee394eb58f5f8bdf6f852d07f3c07637d2948
    Error          e;
    pn = argv[0];
 
