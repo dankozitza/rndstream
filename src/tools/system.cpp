@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <dirent.h>
 #include <fstream>
+#include "../jconfig_cfgval.hpp"
 #include "../tools.hpp"
 
 // 
@@ -19,7 +20,7 @@
 // SIGTERM: 15
 //
 vector<void (*)(int)> SigHandlers[16];
-
+vector<void (*)(int, JCFG_umap&)> CfgSigHandlers[16];
 
 // error
 //

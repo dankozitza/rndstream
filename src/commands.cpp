@@ -14,6 +14,7 @@ void dummy_func() {};
 void dummy_func(vector<string>& j) {};
 void dummy_func(ostream& out) {};
 void dummy_func(ostream& out, vector<string>& j) {};
+void dummy_func(ostream& out, jconfig& cfg, vector<string>& j) {};
 
 commands::commands() {
    cmd_name_width = 10;
@@ -149,8 +150,8 @@ void commands::handle(
       string usage,
       string description) {
 
-   Command tmp = {dummy_func, func, dummy_func, dummy_func,
-                  true, false, synopsis, usage, description};
+   Command tmp = {dummy_func, func, dummy_func, dummy_func, dummy_func,
+                  true, false, false, synopsis, usage, description};
    cmds[cmd]   = tmp;
 }
 
@@ -161,8 +162,8 @@ void commands::handle(
       string usage,
       string description) {
 
-   Command tmp = {func, dummy_func, dummy_func, dummy_func,
-                  false, false, synopsis, usage, description};
+   Command tmp = {func, dummy_func, dummy_func, dummy_func, dummy_func,
+                  false, false, false, synopsis, usage, description};
    cmds[cmd]   = tmp;
 }
 
@@ -173,8 +174,8 @@ void commands::handle(
       string usage,
       string description) {
 
-   Command tmp = {dummy_func, dummy_func, func, dummy_func,
-                  false, true, synopsis, usage, description};
+   Command tmp = {dummy_func, dummy_func, func, dummy_func, dummy_func,
+                  false, true, false, synopsis, usage, description};
    cmds[cmd]   = tmp;
 }
 
@@ -185,8 +186,20 @@ void commands::handle(
       string usage,
       string description) {
 
-   Command tmp = {dummy_func, dummy_func, dummy_func, func,
-                  true, true, synopsis, usage, description};
+   Command tmp = {dummy_func, dummy_func, dummy_func, func, dummy_func,
+                  true, true, false, synopsis, usage, description};
+   cmds[cmd]   = tmp;
+}
+
+void commands::handle(
+      string cmd,
+      void (*func)(ostream&, jconfig& cfg, vector<string>&),
+      string synopsis,
+      string usage,
+      string description) {
+
+   Command tmp = {dummy_func, dummy_func, dummy_func, dummy_func, func,
+                  true, true, true, synopsis, usage, description};
    cmds[cmd]   = tmp;
 }
 
@@ -225,6 +238,44 @@ void commands::run(string cmd, vector<string>& arguments, ostream& out) {
    else if (it != cmds.end()) {
       is_resolved = true;
       if (cmds[cmd].has_arguments) {
+         if (cmds[cmd].has_output) {
+            cmds[cmd].func_woa(out, arguments);
+         }
+         else {
+            cmds[cmd].func_wa(arguments);
+         }
+      }
+      else {
+         if (cmds[cmd].has_output) {
+            cmds[cmd].func_wo(out);
+         }
+         else {
+            cmds[cmd].func_na();
+         }
+      }
+   }
+   else {
+      cout << "commands::run: Unknown command '" << cmd << "'. Try '";
+      if (program_name != "")
+         cout << program_name << " ";
+      cout << "help'.\n";
+   }
+}
+
+void commands::run(string cmd, vector<string>& arguments, ostream& out, jconfig& cfg) {
+   map<string, Command>::iterator it = cmds.find(cmd);
+
+   // if help has been defined by the user do not run default_help
+   if (cmd == "help" && it == cmds.end()) {
+      default_help(arguments);
+   }
+
+   else if (it != cmds.end()) {
+      is_resolved = true;
+      if (cmds[cmd].has_all_args) {
+         cmds[cmd].func_all(out, cfg, arguments);
+      }
+      else if (cmds[cmd].has_arguments) {
          if (cmds[cmd].has_output) {
             cmds[cmd].func_woa(out, arguments);
          }

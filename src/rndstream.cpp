@@ -58,14 +58,13 @@ using namespace tools;
 
 void callback_func_prompt(int sig);
 
-void cmd_gen(vector<string>& argv);
-void cmd_stream(ostream& out);
-void cmd_file(ostream& file);
-void cmd_env();
+void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv);
+void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv);
+void cmd_file(ostream& file, jconfig& cfg, vector<string>& argv);
+void cmd_env(ostream& out, jconfig& cfg, vector<string>& argv);
 
 string  pn;
 unsigned int lframe = 1;
-jconfig cfg("rndstream.json");
 
 int main(int argc, char *argv[]) {
    vector<string> Argv(0);
@@ -73,6 +72,7 @@ int main(int argc, char *argv[]) {
    options        opt;
    commands       cmds;
    unsigned int   t = time(NULL);
+   jconfig        cfg("/tmp/rndstream.json");
    Error          e;
    pn = argv[0];
 
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
-   cfg.file_path = string(getenv("HOME")) + string("/.rndstream.json");
+   cfg.set_file_location(string(getenv("HOME")) + string("/.rndstream.json"));
 
    cfg.define_uint("seed",   t);
    cfg.define_uint("lines",  0);
@@ -278,11 +278,12 @@ int main(int argc, char *argv[]) {
       "Display the configuration file.",
       "env");
 
-   cmds.run(cmd, Argv, cout);
+   cmds.run(cmd, Argv, cout, cfg);
 
    return 0;
 }
- void cmd_gen(vector<string>& argv) {
+
+void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv) {
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
@@ -319,7 +320,7 @@ int main(int argc, char *argv[]) {
          "file <file_name> [-options]");
 
    if (cmd2 == "str") {
-      cmds2.run(cmd2, argv, cout);
+      cmds2.run(cmd2, argv, cout, cfg);
    }
    else if (cmd2 == "file") {
       // attempt to open file in argv 3
@@ -330,7 +331,7 @@ int main(int argc, char *argv[]) {
       if (argv[0] == "help" || argv[0] == "-h") {
          argv.resize(1);
          argv[0] = "file";
-         cmds2.run("help", argv, cout);
+         cmds2.run("help", argv, cout, cfg);
          return;
       }
 
@@ -347,20 +348,20 @@ int main(int argc, char *argv[]) {
          cout << pn << ": Output file cannot be opened.";
          return;
       }
-      cmds2.run(cmd2, argv, fout);
+      cmds2.run(cmd2, argv, fout, cfg);
    }
    else {
-      cmds2.run("help", argv, cout);
+      cmds2.run("help", argv, cout, cfg);
    }
    return;
 }
 
-void cmd_file(ostream& out) {
-   cmd_stream(out);
+void cmd_file(ostream& file, jconfig& cfg, vector<string>& argv) {
+   cmd_stream(file, cfg, argv);
    return;
 }
 
-void cmd_stream(ostream& out) {
+void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv) {
 
    srand(cfg.get_uint("seed"));
    double       wt    = cfg.get_dbl("delay");
@@ -439,7 +440,7 @@ void cmd_stream(ostream& out) {
    return;
 }
 
-void cmd_env() {
+void cmd_env(ostream& out, jconfig& cfg, vector<string>& argv) {
    cout << cfg.file_path << ":\n" << cfg.getJSON() << "\n";
    return;
 }
@@ -448,6 +449,39 @@ void callback_func_prompt(int sig) {
    char o = 'e';
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
+   string tmp = string(getenv("HOME")) + string("/.rndstream.json");
+   jconfig cfg(tmp);
+   Error e = cfg.load();
+   if (e != NULL) {
+      cfg.set_file_location("/tmp/rndstream.json");
+      e = cfg.load();
+      if (e != NULL) {
+         cout << pn << ": Error: jconfig file '" << cfg.file_path;
+         cout << "' not found: " << e << endl;
+         exit(1);
+      }
+   }
+   e = cfg.convert();
+   if (e != NULL) {
+      cout << pn << ": Error: jconfig file '" << cfg.file_path;
+      cout << "' failed to convert: " << e << endl;
+      exit(1);
+   }
+   if (cfg.file_path != cfg.get_str("config")) {
+      cfg.set_file_location(cfg.get_str("config"));
+      e = cfg.load();
+      if (e != NULL) {
+         cout << pn << ": Error in default config: jconfig file '";
+         cout << cfg.file_path.c_str() << "' not found: " << e << endl;
+         exit(1);
+      }
+      e = cfg.convert();
+      if (e != NULL) {
+         cout << pn << ": Error: jconfig file '" << cfg.file_path;
+         cout << "' failed to convert: " << e << endl;
+         exit(1);
+      }
+   }
 
    if (cfg.get_uint("lines") == 0) {
       cout << endl;

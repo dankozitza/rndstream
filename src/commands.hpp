@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "jconfig.hpp"
 
 using namespace std;
 
@@ -21,8 +22,10 @@ class commands {
          void (*func_wa)(vector<string>&); // function with argument list
          void (*func_wo)(ostream&);        // function with output stream
          void (*func_woa)(ostream&, vector<string>&); // function with both
+         void (*func_all)(ostream&, jconfig&, vector<string>&);
          bool has_arguments;
          bool has_output;
+         bool has_all_args;
          string synopsis;
          string usage;
          string description;
@@ -67,8 +70,15 @@ class commands {
             string synopsis,
             string usage,
             string description = "");
+      void handle(
+            string cmd,
+            void (*func)(ostream&, jconfig&, vector<string>&),
+            string synopsis,
+            string usage,
+            string description = "");
       void run(string cmd, vector<string>& arguments);
       void run(string cmd, vector<string>& arguments, ostream& out);
+      void run(string cmd, vector<string>& arguments, ostream& out, jconfig& cfg);
       void default_help(vector<string>& arg);
       bool resolved();
       void reset();
