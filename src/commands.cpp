@@ -13,8 +13,8 @@
 void dummy_func() {};
 void dummy_func(vector<string>& j) {};
 void dummy_func(ostream& out) {};
-void dummy_func(ostream& out, vector<string>& j) {};
-void dummy_func(ostream& out, jconfig& cfg, vector<string>& j) {};
+void dummy_func(vector<string>& in, ostream& out) {};
+void dummy_func(vector<string>& in, ostream& out, jconfig& cfg) {};
 
 commands::commands() {
    cmd_name_width = 10;
@@ -181,7 +181,7 @@ void commands::handle(
 
 void commands::handle(
       string cmd,
-      void (*func)(ostream&, vector<string>&),
+      void (*func)(vector<string>&, ostream&),
       string synopsis,
       string usage,
       string description) {
@@ -193,7 +193,7 @@ void commands::handle(
 
 void commands::handle(
       string cmd,
-      void (*func)(ostream&, jconfig& cfg, vector<string>&),
+      void (*func)(vector<string>&, ostream&, jconfig&),
       string synopsis,
       string usage,
       string description) {
@@ -239,7 +239,7 @@ void commands::run(string cmd, vector<string>& arguments, ostream& out) {
       is_resolved = true;
       if (cmds[cmd].has_arguments) {
          if (cmds[cmd].has_output) {
-            cmds[cmd].func_woa(out, arguments);
+            cmds[cmd].func_woa(arguments, out);
          }
          else {
             cmds[cmd].func_wa(arguments);
@@ -273,11 +273,11 @@ void commands::run(string cmd, vector<string>& arguments, ostream& out, jconfig&
    else if (it != cmds.end()) {
       is_resolved = true;
       if (cmds[cmd].has_all_args) {
-         cmds[cmd].func_all(out, cfg, arguments);
+         cmds[cmd].func_all(arguments, out, cfg);
       }
       else if (cmds[cmd].has_arguments) {
          if (cmds[cmd].has_output) {
-            cmds[cmd].func_woa(out, arguments);
+            cmds[cmd].func_woa(arguments, out);
          }
          else {
             cmds[cmd].func_wa(arguments);

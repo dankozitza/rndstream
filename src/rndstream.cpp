@@ -58,33 +58,12 @@ using namespace tools;
 
 void callback_func_prompt(int sig);
 
-void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv);
-void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv);
-void cmd_file(ostream& file, jconfig& cfg, vector<string>& argv);
-void cmd_env(ostream& out, jconfig& cfg, vector<string>& argv);
+void cmd_gen(vector<string>& argv, ostream& out, jconfig& cfg);
+void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg);
+void cmd_file(vector<string>& argv, ostream& file, jconfig& cfg);
+void cmd_env(vector<string>& argv, ostream& out, jconfig& cfg);
 
-string  pn;
-unsigned int lframe = 1;
-
-int main(int argc, char *argv[]) {
-   vector<string> Argv(0);
-   string         cmd;
-   options        opt;
-   commands       cmds;
-   unsigned int   t = time(NULL);
-   jconfig        cfg("/tmp/rndstream.json");
-   bool           display_help = false;
-   Error          e;
-   pn = argv[0];
-
-   signal(SIGINT, scbh_return_quiet);
-   signals(SIGINT, callback_func_prompt);
-
-   struct winsize ws;
-   ioctl(0, TIOCGWINSZ, &ws);
-
-   cfg.set_file_location(string(getenv("HOME")) + string("/.rndstream.json"));
-
+void define_config(jconfig& cfg, unsigned int t) {
    cfg.define_uint("seed",   t);
    cfg.define_uint("lines",  0);
    cfg.define_uint("width",  1);
@@ -105,6 +84,32 @@ int main(int argc, char *argv[]) {
    cfg.define_btn("d");
    cfg.define_btn("n");
    cfg.define_btn("b");
+   cfg.define_str("pn", "rndstream");
+   return;
+}
+
+unsigned int lframe = 1;
+
+int main(int argc, char *argv[]) {
+   vector<string> Argv(0);
+   string         cmd;
+   options        opt;
+   commands       cmds;
+   unsigned int   t = time(NULL);
+   bool           display_help = false;
+   Error          e;
+
+   signal(SIGINT, scbh_return_quiet);
+   signals(SIGINT, callback_func_prompt);
+
+   struct winsize ws;
+   ioctl(0, TIOCGWINSZ, &ws);
+
+   jconfig cfg;
+   if (getenv("HOME") != "" && dir_exists(getenv("HOME"))) {
+      cfg.set_file_location(string(getenv("HOME")) + "/.rndstream.json");
+   }
+   define_config(cfg, t);
 
    opt.handle('c', cfg.m["config"].set,      cfg.m["config"].vstr);
    opt.handle('s', cfg.m["seed"].set,        cfg.m["seed"].vstr);
@@ -132,18 +137,18 @@ int main(int argc, char *argv[]) {
 
    e = cfg.load();
    if (e != NULL) {
-      cout << pn << ": Making jconfig file '" << cfg.file_path;
+      cout << cfg.get_str("pn") << ": Making jconfig file '" << cfg.file_path;
       cout << "'.\n";
       e = cfg.save();
       if (e != NULL) {
-         cout << pn << ": Error: " << e << endl;
+         cout << cfg.get_str("pn") << ": Error: " << e << endl;
          return 1;
       }
    }
 
    e = opt.evaluate(Argv);
    if (e != NULL) {
-      cout << pn << ": Error: " << e << endl;
+      cout << cfg.get_str("pn") << ": Error: " << e << endl;
       return 1;
    }
 
@@ -157,11 +162,11 @@ int main(int argc, char *argv[]) {
       cfg.file_path = cfg.get_str("config");
       e = cfg.load();
       if (e != NULL) {
-         cout << pn << ": Making jconfig file '" << cfg.file_path;
+         cout << cfg.get_str("pn") << ": Making jconfig file '" << cfg.file_path;
          cout << "'.\n";
          e = cfg.save();
          if (e != NULL) {
-            cout << pn << ": Error: " << e << endl;
+            cout << cfg.get_str("pn") << ": Error: " << e << endl;
             return 1;
          }
       }
@@ -169,9 +174,15 @@ int main(int argc, char *argv[]) {
       opt.clear();
       e = opt.evaluate(Argv);
       if (e != NULL) {
-         cout << pn << ": Error: " << e << endl;
+         cout << cfg.get_str("pn") << ": Error: " << e << endl;
          return 1;
       }
+   }
+
+   e = cfg.save_tmp();
+   if (e != NULL) {
+      cout << cfg.get_str("pn") << ": Error: " << e << endl;
+      return 1;
    }
 
    if (cfg.m["output"].set)      {
@@ -234,7 +245,7 @@ int main(int argc, char *argv[]) {
 
    e = cfg.convert();
    if (e != NULL) {
-      cout << pn << ": Error: " << e << endl;
+      cout << cfg.get_str("pn") << ": Error: " << e << endl;
       return 1;
    }
 
@@ -292,7 +303,7 @@ int main(int argc, char *argv[]) {
    if (cfg.get_btn("d") == false) {
       e = cfg.save();
       if (e != NULL) {
-         cout << pn << ": Error: " << e << endl;
+         cout << cfg.get_str("pn") << ": Error: " << e << endl;
          return 1;
       }
    }
@@ -306,7 +317,7 @@ int main(int argc, char *argv[]) {
       Argv.erase(Argv.begin());
    }
 
-   cmds.set_program_name(pn);
+   cmds.set_program_name(cfg.get_str("pn"));
    cmds.set_max_line_width(ws.ws_col);
    cmds.set_cmd_name_width(5);
    cmds.set_cmds_help(
@@ -350,12 +361,12 @@ int main(int argc, char *argv[]) {
    return 0;
 }
 
-void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv) {
+void cmd_gen(vector<string>& argv, ostream& out, jconfig& cfg) {
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
    commands cmds2;
-   cmds2.set_program_name(pn + " gen");
+   cmds2.set_program_name(cfg.get_str("pn") + " gen");
    cmds2.set_max_line_width(ws.ws_col);
    cmds2.set_cmd_name_width(5);
    string cmd2 = "help";
@@ -373,7 +384,7 @@ void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv) {
       cout << "Ignoring " << cfg.get_uint("ignore") << " frames.\n";
    }
 
-   cmds2.set_cmds_help("\nUsage:\n\n   " + pn + " gen <command> [-options]\n");
+   cmds2.set_cmds_help("\nUsage:\n\n   " + cfg.get_str("pn") + " gen <command> [-options]\n");
    cmds2.handle(
          "str",
          cmd_stream,
@@ -392,7 +403,7 @@ void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv) {
    else if (cmd2 == "file") {
       // attempt to open file in argv 3
       if (argv.size() < 1) {
-         cout << pn << ": Command requires a file name.\n";
+         cout << cfg.get_str("pn") << ": Command requires a file name.\n";
          return;
       }
       if (argv[0] == "help" || argv[0] == "-h") {
@@ -405,14 +416,14 @@ void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv) {
       cfg.define_dbl("delay", 0.0);
 
       if (cfg.get_uint("frames") == 0) {
-         cout << pn << ": Frame (-f #) is not set. Program will run indefinately.\n";
+         cout << cfg.get_str("pn") << ": Frame (-f #) is not set. Program will run indefinately.\n";
          return;
       }
 
       ofstream fout;
       fout.open(argv[0].c_str(), ofstream::out);
       if (!fout.is_open()) {
-         cout << pn << ": Output file cannot be opened.";
+         cout << cfg.get_str("pn") << ": Output file cannot be opened.";
          return;
       }
       cmds2.run(cmd2, argv, fout, cfg);
@@ -423,12 +434,12 @@ void cmd_gen(ostream& out, jconfig& cfg, vector<string>& argv) {
    return;
 }
 
-void cmd_file(ostream& file, jconfig& cfg, vector<string>& argv) {
-   cmd_stream(file, cfg, argv);
+void cmd_file(vector<string>& argv, ostream& file, jconfig& cfg) {
+   cmd_stream(argv, file, cfg);
    return;
 }
 
-void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv) {
+void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
 
    srand(cfg.get_uint("seed"));
    double       wt    = cfg.get_dbl("delay");
@@ -489,7 +500,7 @@ void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv) {
                         rand() % cfg.get_vstr("output_vstr").size()];
             }
             else {
-               out << pn << ": Error: Incorrect output format.\n";
+               out << cfg.get_str("pn") << ": Error: Incorrect output format.\n";
                return;
             }
          }
@@ -512,7 +523,7 @@ void cmd_stream(ostream& out, jconfig& cfg, vector<string>& argv) {
    return;
 }
 
-void cmd_env(ostream& out, jconfig& cfg, vector<string>& argv) {
+void cmd_env(vector<string>& argv, ostream& out, jconfig& cfg) {
    cout << cfg.file_path << ":\n" << cfg.getJSON() << "\n";
    return;
 }
@@ -521,51 +532,35 @@ void callback_func_prompt(int sig) {
    char o = 'e';
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
-   string tmp = string(getenv("HOME")) + string("/.rndstream.json");
-   jconfig cfg(tmp);
-   Error e = cfg.load();
+
+   jconfig cfg("");
+   define_config(cfg, 0);
+   Error e = cfg.load_tmp();
    if (e != NULL) {
-      cfg.set_file_location("/tmp/rndstream.json");
-      e = cfg.load();
-      if (e != NULL) {
-         cout << pn << ": Error: jconfig file '" << cfg.file_path;
-         cout << "' not found: " << e << endl;
-         exit(1);
-      }
+      cout << cfg.get_str("pn") << ": Error: jconfig tmp file could not be loaded: ";
+      cout << e << endl;
+      exit(1);
    }
    e = cfg.convert();
    if (e != NULL) {
-      cout << pn << ": Error: jconfig file '" << cfg.file_path;
-      cout << "' failed to convert: " << e << endl;
+      cout << cfg.get_str("pn") << ": Error: jconfig failed to convert: ";
+      cout << e << endl;
       exit(1);
    }
-   if (cfg.file_path != cfg.get_str("config")) {
-      cfg.set_file_location(cfg.get_str("config"));
-      e = cfg.load();
-      if (e != NULL) {
-         cout << pn << ": Error in default config: jconfig file '";
-         cout << cfg.file_path.c_str() << "' not found: " << e << endl;
-         exit(1);
-      }
-      e = cfg.convert();
-      if (e != NULL) {
-         cout << pn << ": Error: jconfig file '" << cfg.file_path;
-         cout << "' failed to convert: " << e << endl;
-         exit(1);
-      }
-   }
 
+   // assume config has not been modified since save_tmp was called
+   if (cfg.get_str("config") != cfg.file_path) {
+      cfg.set_file_location(cfg.get_str("config"));
+   }
+   
    if (cfg.get_uint("lines") == 0) {
       cout << endl;
    }
    cout << "\n           --- paused ---\n";
 
    cout << "\n(last frame: " << lframe;
-
-   if (cfg.get_btn("x")) {
-      cout << ") (frame size: " << ws.ws_col << "x" << ws.ws_row;
-   }
-
+   cout << ") (frame size: " << cfg.get_uint("width");
+   cout << "x"               << cfg.get_uint("lines");
    cout << ")\n- Type key and press enter: [r: resume | e: exit | s: save]\n-> ";
 
    while (cin >> o) {

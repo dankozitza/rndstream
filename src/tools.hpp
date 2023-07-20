@@ -17,6 +17,7 @@
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 #include <jsoncpp/json/reader.h>
+#include "jconfig_cfgval.hpp"
 
 using namespace std;
 
@@ -34,7 +35,9 @@ namespace tools {
    void signals_callback_handler(int signum);
    void scbh_return(int signum);
    void scbh_return_quiet(int signum);
+   void cfgsigs_cbh_return_quiet(int signum);
    void signals(int sig, void (*callback_func)(int));
+   void cfgsignals(int sig, void (*callback_func)(int, JCFG_umap&));
    bool require(int sys_exit_val, string msg = "");
    bool require(bool func_return_val, string msg = "");
    bool dir_exists(string dir_name);

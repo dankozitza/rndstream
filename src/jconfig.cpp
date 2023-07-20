@@ -6,7 +6,15 @@
 
 #include "jconfig.hpp"
 
+jconfig::jconfig() {
+   tmp_file_path = "/tmp/rndstream_tmp_config.json";
+   file_path = tmp_file_path;
+   m = unordered_map<string, cfgval>();
+   mit = m.begin();
+}
+
 jconfig::jconfig(string file) {
+   tmp_file_path = "/tmp/rndstream_tmp_config.json";
    file_path = file;
    m = unordered_map<string, cfgval>();
    mit = m.begin();
@@ -268,6 +276,10 @@ tools::Error jconfig::load() {
             if (elmntv.isBool()) {
                m[key].bval = elmntv.asBool();
             }
+            else {
+               return errorf("Error: jconfig key '%s' has no value",
+                             key.c_str());
+            }
             continue;
          }
 
@@ -319,6 +331,20 @@ tools::Error jconfig::load() {
 tools::Error jconfig::save() {
    string fc = getJSON();
    return tools::write_file(file_path, fc);
+}
+
+tools::Error jconfig::save_tmp() {
+   string fc = getJSON();
+   return tools::write_file(tmp_file_path, fc);
+}
+
+tools::Error jconfig::load_tmp() {
+   tools::Error e = NULL;
+   string real_file_path = file_path;
+   set_file_location(tmp_file_path);
+   e = load();
+   set_file_location(real_file_path);
+   return e;
 }
 
 string jconfig::getJSON() {

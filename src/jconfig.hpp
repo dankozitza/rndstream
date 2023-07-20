@@ -19,6 +19,7 @@ class jconfig {
    public:
 
       string file_path;
+      string tmp_file_path;
 
       // types: int, uint, double, string, bool, button
       // bool and button types have no arguments.
@@ -38,6 +39,7 @@ class jconfig {
       unordered_map<string, cfgval> m;
       unordered_map<string, cfgval>::iterator mit;
 
+      jconfig();
       jconfig(string file);
 
       void set_file_location(string fl);
@@ -82,6 +84,9 @@ class jconfig {
       tools::Error convert();
       tools::Error load();
       tools::Error save();
+
+      tools::Error load_tmp();
+      tools::Error save_tmp();
 
       string getJSON();
 };

@@ -21,8 +21,8 @@ class commands {
          void (*func_na)();                // function with no arguments
          void (*func_wa)(vector<string>&); // function with argument list
          void (*func_wo)(ostream&);        // function with output stream
-         void (*func_woa)(ostream&, vector<string>&); // function with both
-         void (*func_all)(ostream&, jconfig&, vector<string>&);
+         void (*func_woa)(vector<string>&, ostream&); // function with both
+         void (*func_all)(vector<string>&, ostream&, jconfig&);
          bool has_arguments;
          bool has_output;
          bool has_all_args;
@@ -66,13 +66,13 @@ class commands {
             string description = "");
       void handle(
             string cmd,
-            void (*func)(ostream&, vector<string>&),
+            void (*func)(vector<string>&, ostream&),
             string synopsis,
             string usage,
             string description = "");
       void handle(
             string cmd,
-            void (*func)(ostream&, jconfig&, vector<string>&),
+            void (*func)(vector<string>&, ostream&, jconfig&),
             string synopsis,
             string usage,
             string description = "");

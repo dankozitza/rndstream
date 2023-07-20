@@ -193,6 +193,21 @@ void tools::scbh_return_quiet(int signum) {
    return;
 }
 
+void tools::cfgsigs_cbh_return_quiet(int signum) {
+//
+//   if (signum < 0 || signum > 15) {
+//      cout << "signal number out of bounds!\n";
+//      exit(signum);
+//      return;
+//   }
+//
+//   // run each function passed to signals and return
+//   for (const auto handler : CfgSigHandlers[signum]) {
+//      handler(signum, );
+//   }
+   return;
+}
+
 
 // signals
 //
@@ -205,6 +220,11 @@ void tools::scbh_return_quiet(int signum) {
 //
 void tools::signals(int sig, void (*callback_func)(int)) {
    SigHandlers[sig].push_back(callback_func);
+   return;
+}
+
+void tools::cfgsignals(int sig, void (*callback_func)(int, JCFG_umap&)) {
+   CfgSigHandlers[sig].push_back(callback_func);
    return;
 }
 
