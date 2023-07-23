@@ -9,7 +9,8 @@
 #ifndef _JCONFIG
 #define _JCONFIG
 
-#include "jconfig_cfgval.hpp"
+#include <unordered_map>
+#include <vector>
 #include "tools.hpp"
 
 using namespace tools;
@@ -20,21 +21,22 @@ class jconfig {
 
       string file_path;
       string tmp_file_path;
+      string termux_prefix;
 
       // types: int, uint, double, string, bool, button
       // bool and button types have no arguments.
       // buttons are off unless set on the command line,
       // bools are toggled by options on the command line.
 
-      //struct cfgval {
-      //   string         type;
-      //   bool           set;
-      //   bool           bval;
-      //   vector<int>    vint;
-      //   vector<string> vstr;
-      //   vector<double> vdbl;
-      //   vector<unsigned int> vuint;
-      //};
+      struct cfgval {
+         string         type;
+         bool           set;
+         bool           bval;
+         vector<int>    vint;
+         vector<string> vstr;
+         vector<double> vdbl;
+         vector<unsigned int> vuint;
+      };
 
       unordered_map<string, cfgval> m;
       unordered_map<string, cfgval>::iterator mit;

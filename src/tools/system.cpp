@@ -8,7 +8,6 @@
 #include <cstdlib>
 #include <dirent.h>
 #include <fstream>
-#include "../jconfig_cfgval.hpp"
 #include "../tools.hpp"
 
 // 
@@ -20,7 +19,6 @@
 // SIGTERM: 15
 //
 vector<void (*)(int)> SigHandlers[16];
-vector<void (*)(int, JCFG_umap&)> CfgSigHandlers[16];
 
 // error
 //
@@ -220,11 +218,6 @@ void tools::cfgsigs_cbh_return_quiet(int signum) {
 //
 void tools::signals(int sig, void (*callback_func)(int)) {
    SigHandlers[sig].push_back(callback_func);
-   return;
-}
-
-void tools::cfgsignals(int sig, void (*callback_func)(int, JCFG_umap&)) {
-   CfgSigHandlers[sig].push_back(callback_func);
    return;
 }
 

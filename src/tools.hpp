@@ -14,10 +14,16 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <vector>
-#include <jsoncpp/json/json.h>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/reader.h>
-#include "jconfig_cfgval.hpp"
+
+#ifdef __ANDROID__
+   #include <json/json.h>
+   #include <json/value.h>
+   #include <json/reader.h>
+#else
+   #include <jsoncpp/json/json.h>
+   #include <jsoncpp/json/value.h>
+   #include <jsoncpp/json/reader.h>
+#endif
 
 using namespace std;
 
@@ -37,7 +43,6 @@ namespace tools {
    void scbh_return_quiet(int signum);
    void cfgsigs_cbh_return_quiet(int signum);
    void signals(int sig, void (*callback_func)(int));
-   void cfgsignals(int sig, void (*callback_func)(int, JCFG_umap&));
    bool require(int sys_exit_val, string msg = "");
    bool require(bool func_return_val, string msg = "");
    bool dir_exists(string dir_name);

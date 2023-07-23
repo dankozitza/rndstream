@@ -106,8 +106,12 @@ int main(int argc, char *argv[]) {
    ioctl(0, TIOCGWINSZ, &ws);
 
    jconfig cfg;
-   if (getenv("HOME") != "" && dir_exists(getenv("HOME"))) {
+   if (string(getenv("HOME")) != "" && dir_exists(getenv("HOME"))) {
       cfg.set_file_location(string(getenv("HOME")) + "/.rndstream.json");
+   }
+   else if (dir_exists(cfg.termux_prefix)) {
+      cfg.tmp_file_path = cfg.termux_prefix + cfg.tmp_file_path;
+      cfg.set_file_location(cfg.tmp_file_path);
    }
    define_config(cfg, t);
 
