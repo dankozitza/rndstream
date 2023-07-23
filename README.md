@@ -75,5 +75,18 @@ Cleanup:
 
    make clean
 
+Notes:
+
+   Termux requires a package called termux-elf-cleaner
+   in order to stop an annoying linker warning.
+
+      pkg install termux-elf-cleaner
+
+   Then call
+
+      termux-elf-cleaner rndstream
+
+   after you call make.
+
 ```
 
