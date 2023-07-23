@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
    ioctl(0, TIOCGWINSZ, &ws);
 
    jconfig cfg;
-   if (string(getenv("HOME")) != "" && dir_exists(getenv("HOME"))) {
+   if (getenv("HOME") != NULL && string(getenv("HOME")) != "" && dir_exists(getenv("HOME"))) {
       cfg.set_file_location(string(getenv("HOME")) + "/.rndstream.json");
    }
    define_config(cfg, t);
@@ -577,12 +577,16 @@ void callback_func_prompt(int sig) {
    if (cfg.get_uint("lines") == 0) {
       cout << endl;
    }
-   cout << "\n           --- paused ---\n";
+   cout << "\n                     --- paused ---\n";
 
-   cout << "\n(last frame: " << lframe;
-   cout << ") (frame size: " << width;
-   cout << "x"               << lines;
-   cout << ")\n- Type key and press enter: [r: resume | e: exit | s: save]\n-> ";
+   if (cfg.get_int("verbose") > 0) {
+      cout << "\n- (last frame: " << lframe;
+      cout << ") (frame size: " << width;
+      cout << "x"               << lines;
+      cout << ") (delay: " << cfg.get_dbl("delay") << ")";
+   }
+
+   cout << "\n- Type key and press enter: [r: resume | e: exit | s: save]\n-> ";
 
    while (cin >> o) {
       if (o < 97) {o += 32;}
