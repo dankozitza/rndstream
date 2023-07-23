@@ -9,6 +9,14 @@
 #ifndef _JCONFIG
 #define _JCONFIG
 
+#ifndef __ANDROID__
+   #define JCONFIG_TMP_PATH "/tmp/"
+#else
+   #define JCONFIG_TMP_PATH "/data/data/com.termux/files/usr/tmp/"
+#endif
+
+#define JCONFIG_TMP_FILENAME "jconfig_tmp_config.json"
+
 #include <unordered_map>
 #include <vector>
 #include "tools.hpp"
@@ -21,7 +29,6 @@ class jconfig {
 
       string file_path;
       string tmp_file_path;
-      string termux_prefix;
 
       // types: int, uint, double, string, bool, button
       // bool and button types have no arguments.
@@ -94,3 +101,4 @@ class jconfig {
 };
 
 #endif
+

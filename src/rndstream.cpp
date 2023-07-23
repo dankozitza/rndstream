@@ -77,6 +77,7 @@ void define_config(jconfig& cfg, unsigned int t) {
    cfg.define_str("output_str", "none");
    cfg.define_vstr("output_vstr", {"none"});
    cfg.define_int("verbose", 0);
+   cfg.define_bool("handle_ctrl_c", 1);
    cfg.define_btn("r");
    cfg.define_btn("R");
    cfg.define_btn("x");
@@ -109,24 +110,21 @@ int main(int argc, char *argv[]) {
    if (string(getenv("HOME")) != "" && dir_exists(getenv("HOME"))) {
       cfg.set_file_location(string(getenv("HOME")) + "/.rndstream.json");
    }
-   else if (dir_exists(cfg.termux_prefix)) {
-      cfg.tmp_file_path = cfg.termux_prefix + cfg.tmp_file_path;
-      cfg.set_file_location(cfg.tmp_file_path);
-   }
    define_config(cfg, t);
 
-   opt.handle('c', cfg.m["config"].set,      cfg.m["config"].vstr);
-   opt.handle('s', cfg.m["seed"].set,        cfg.m["seed"].vstr);
-   opt.handle('l', cfg.m["lines"].set,       cfg.m["lines"].vstr);
-   opt.handle('w', cfg.m["width"].set,       cfg.m["width"].vstr);
-   opt.handle('f', cfg.m["frames"].set,      cfg.m["frames"].vstr);
-   opt.handle('p', cfg.m["print"].set,       cfg.m["print"].vstr);
-   opt.handle('o', cfg.m["output"].set,      cfg.m["output"].vstr);
-   opt.handle('O', cfg.m["output_list"].set, cfg.m["output_list"].vstr);
-   opt.handle('S', cfg.m["output_str"].set,  cfg.m["output_str"].vstr);
-   opt.handle('t', cfg.m["delay"].set,       cfg.m["delay"].vstr);
-   opt.handle('i', cfg.m["ignore"].set,      cfg.m["ignore"].vstr);
-   opt.handle('v', cfg.m["verbose"].set,     cfg.m["verbose"].vstr);
+   opt.handle('c', cfg.m["config"].set,        cfg.m["config"].vstr);
+   opt.handle('s', cfg.m["seed"].set,          cfg.m["seed"].vstr);
+   opt.handle('l', cfg.m["lines"].set,         cfg.m["lines"].vstr);
+   opt.handle('w', cfg.m["width"].set,         cfg.m["width"].vstr);
+   opt.handle('f', cfg.m["frames"].set,        cfg.m["frames"].vstr);
+   opt.handle('p', cfg.m["print"].set,         cfg.m["print"].vstr);
+   opt.handle('o', cfg.m["output"].set,        cfg.m["output"].vstr);
+   opt.handle('O', cfg.m["output_list"].set,   cfg.m["output_list"].vstr);
+   opt.handle('S', cfg.m["output_str"].set,    cfg.m["output_str"].vstr);
+   opt.handle('t', cfg.m["delay"].set,         cfg.m["delay"].vstr);
+   opt.handle('i', cfg.m["ignore"].set,        cfg.m["ignore"].vstr);
+   opt.handle('v', cfg.m["verbose"].set,       cfg.m["verbose"].vstr);
+   opt.handle('C', cfg.m["handle_ctrl_c"].set, cfg.m["handle_ctrl_c"].vstr);
    opt.handle('r', cfg.m["r"].set);
    opt.handle('R', cfg.m["R"].set);
    opt.handle('x', cfg.m["x"].set);
@@ -181,12 +179,6 @@ int main(int argc, char *argv[]) {
          cout << cfg.get_str("pn") << ": Error: " << e << endl;
          return 1;
       }
-   }
-
-   e = cfg.save_tmp();
-   if (e != NULL) {
-      cout << cfg.get_str("pn") << ": Error: " << e << endl;
-      return 1;
    }
 
    if (cfg.m["output"].set)      {
@@ -312,6 +304,12 @@ int main(int argc, char *argv[]) {
       }
    }
 
+   e = cfg.save_tmp();
+   if (e != NULL) {
+      cout << cfg.get_str("pn") << ": Error: " << e << endl;
+      return 1;
+   }
+
    if (Argv.size() == 0) {
       cmd = "gen";
       Argv = {"str"};
@@ -346,6 +344,7 @@ int main(int argc, char *argv[]) {
       "   -r          " + fold(15, ws.ws_col, "Re-set the seed using current time.") + "\n"
       "   -R          " + fold(15, ws.ws_col, "Re-set the seed using current seed.") + "\n"
       "   -d          " + fold(15, ws.ws_col, "Do not overwrite the config file.") + "\n"
+      "   -C          " + fold(15, ws.ws_col, "Exit rather than pause on Ctrl+c signal. (toggle)") + "\n"
       "   -n          " + fold(15, ws.ws_col, "Go to the next frame.") + "\n"
       "   -b          " + fold(15, ws.ws_col, "Go to the last frame.") + "\n");
 
@@ -550,6 +549,10 @@ void callback_func_prompt(int sig) {
       cout << cfg.get_str("pn") << ": Error: jconfig failed to convert: ";
       cout << e << endl;
       exit(1);
+   }
+
+   if (cfg.get_bool("handle_ctrl_c") == false) {
+      exit(0);
    }
 
    // assume config has not been modified since save_tmp was called

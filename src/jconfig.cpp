@@ -7,16 +7,14 @@
 #include "jconfig.hpp"
 
 jconfig::jconfig() {
-   tmp_file_path = "/tmp/rndstream_tmp_config.json";
-   termux_prefix = "/data/data/com.termux/files/usr";
+   tmp_file_path = string(JCONFIG_TMP_PATH) + string(JCONFIG_TMP_FILENAME);
    file_path = tmp_file_path;
    m = unordered_map<string, cfgval>();
    mit = m.begin();
 }
 
 jconfig::jconfig(string file) {
-   tmp_file_path = "/tmp/rndstream_tmp_config.json";
-   termux_prefix = "/data/data/com.termux/files/usr";
+   tmp_file_path = string(JCONFIG_TMP_PATH) + string(JCONFIG_TMP_FILENAME);
    file_path = file;
    m = unordered_map<string, cfgval>();
    mit = m.begin();
@@ -337,12 +335,7 @@ tools::Error jconfig::save() {
 
 tools::Error jconfig::save_tmp() {
    string fc = getJSON();
-   Error e = tools::write_file(tmp_file_path, fc);
-   if (e != NULL) {
-      tmp_file_path = termux_prefix + tmp_file_path;
-      e = tools::write_file(tmp_file_path, fc);
-   }
-   return e;
+   return tools::write_file(tmp_file_path, fc);
 }
 
 tools::Error jconfig::load_tmp() {
@@ -350,13 +343,6 @@ tools::Error jconfig::load_tmp() {
    string real_file_path = file_path;
    set_file_location(tmp_file_path);
    e = load();
-
-   if (e != NULL) {
-      tmp_file_path = termux_prefix + tmp_file_path;
-      set_file_location(tmp_file_path);
-      e = load();
-   }
-
    set_file_location(real_file_path);
    return e;
 }
