@@ -304,6 +304,8 @@ int main(int argc, char *argv[]) {
       }
    }
 
+   if (cfg.get_btn("x")) {cfg.define_bool("tmp_x_set", true);}
+
    e = cfg.save_tmp();
    if (e != NULL) {
       cout << cfg.get_str("pn") << ": Error: " << e << endl;
@@ -472,6 +474,7 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
 
       ioctl(0, TIOCGWINSZ, &ws);
       if (cfg.get_btn("x")) {
+         cfg.define_bool("tmp_x_set", true);
          lmax = ws.ws_row;
          wmax = ws.ws_col;
       }
@@ -533,6 +536,8 @@ void cmd_env(vector<string>& argv, ostream& out, jconfig& cfg) {
 
 void callback_func_prompt(int sig) {
    char o = 'e';
+   unsigned int width = 0;
+   unsigned int lines = 0;
    struct winsize ws;
    ioctl(0, TIOCGWINSZ, &ws);
 
@@ -555,6 +560,15 @@ void callback_func_prompt(int sig) {
       exit(0);
    }
 
+   if (cfg.get_bool("tmp_x_set") == true) {
+      width = ws.ws_col;
+      lines = ws.ws_row;
+   }
+   else {
+      width = cfg.get_uint("width");
+      lines = cfg.get_uint("lines");
+   }
+
    // assume config has not been modified since save_tmp was called
    if (cfg.get_str("config") != cfg.file_path) {
       cfg.set_file_location(cfg.get_str("config"));
@@ -566,8 +580,8 @@ void callback_func_prompt(int sig) {
    cout << "\n           --- paused ---\n";
 
    cout << "\n(last frame: " << lframe;
-   cout << ") (frame size: " << cfg.get_uint("width");
-   cout << "x"               << cfg.get_uint("lines");
+   cout << ") (frame size: " << width;
+   cout << "x"               << lines;
    cout << ")\n- Type key and press enter: [r: resume | e: exit | s: save]\n-> ";
 
    while (cin >> o) {

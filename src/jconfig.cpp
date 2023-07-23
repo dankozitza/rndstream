@@ -8,6 +8,7 @@
 
 jconfig::jconfig() {
    tmp_file_path = string(JCONFIG_TMP_PATH) + string(JCONFIG_TMP_FILENAME);
+   tmp_operation = false;
    file_path = tmp_file_path;
    m = unordered_map<string, cfgval>();
    mit = m.begin();
@@ -15,6 +16,7 @@ jconfig::jconfig() {
 
 jconfig::jconfig(string file) {
    tmp_file_path = string(JCONFIG_TMP_PATH) + string(JCONFIG_TMP_FILENAME);
+   tmp_operation = false;
    file_path = file;
    m = unordered_map<string, cfgval>();
    mit = m.begin();
@@ -334,16 +336,21 @@ tools::Error jconfig::save() {
 }
 
 tools::Error jconfig::save_tmp() {
+   tmp_operation = true;
    string fc = getJSON();
-   return tools::write_file(tmp_file_path, fc);
+   Error e = tools::write_file(tmp_file_path, fc);
+   tmp_operation = false;
+   return e;
 }
 
 tools::Error jconfig::load_tmp() {
+   tmp_operation = true;
    tools::Error e = NULL;
    string real_file_path = file_path;
    set_file_location(tmp_file_path);
    e = load();
    set_file_location(real_file_path);
+   tmp_operation = false;
    return e;
 }
 
@@ -353,6 +360,9 @@ string jconfig::getJSON() {
    unordered_map<string, cfgval> wm = {};
    for (mit = m.begin(); mit != m.end(); mit++) {
       if (mit->second.type != "button") {
+
+         if (!tmp_operation && mit->first.substr(0, 4) == "tmp_") { continue; }
+
          wm[mit->first] = mit->second;
       }
    }

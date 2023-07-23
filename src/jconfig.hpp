@@ -29,6 +29,7 @@ class jconfig {
 
       string file_path;
       string tmp_file_path;
+      bool   tmp_operation;
 
       // types: int, uint, double, string, bool, button
       // bool and button types have no arguments.
