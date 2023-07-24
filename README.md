@@ -39,6 +39,8 @@ Options:
    -R          Re-set the seed using current 
                seed.
    -d          Do not overwrite the config file.
+   -C          Exit rather than pause on Ctrl+c signal.
+               (toggle)
    -n          Go to the next frame.
    -b          Go to the last frame.
 
@@ -58,6 +60,14 @@ Files:
    correctly. To override the use of this config file
    use the -c option or manually change the 'config'
    option in .rndstream.json.
+
+Dependencies:
+
+    Linux:  jsoncpp
+    Debian: libjsoncpp-dev
+
+    For debian you will also have to modify tools.hpp
+    to use the proper #include directive.
 
 Build:
 
@@ -89,4 +99,3 @@ Notes:
    after you call make.
 
 ```
-
