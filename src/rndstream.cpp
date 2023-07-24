@@ -272,11 +272,6 @@ int main(int argc, char *argv[]) {
 
    if (cfg.get_btn("x")) {cfg.define_bool("tmp_x_set", true);}
 
-   e = cfg.save_tmp();
-   if (e != NULL) {
-      cout << cfg.get_str("pn") << ": Error: " << e << endl;
-      return 1;
-   }
 
    if (Argv.size() == 0) {
       cmd = "gen";
@@ -415,6 +410,13 @@ void cmd_file(vector<string>& argv, ostream& file, jconfig& cfg) {
 
 void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
 
+   Error e = NULL;
+   e = cfg.save_tmp();
+   if (e != NULL) {
+      cout << cfg.get_str("pn") << ": Error: " << e << endl;
+      exit(1);
+   }
+
    srand(cfg.get_uint("seed"));
    double       wt    = cfg.get_dbl("delay");
    int          v     = cfg.get_int("verbose");
@@ -521,7 +523,7 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
                jconfig cfgn("");
                cfgn.set_file_location(cfg.m["recursion_vstr"].vstr[i + 1]);
                define_config(cfgn, 0);
-               Error e = cfgn.load();
+               e = cfgn.load();
                if (e != NULL) {
                   cout << cfgn.get_str("pn") << ": Error: jconfig file could not be loaded: ";
                   cout << e << endl;
