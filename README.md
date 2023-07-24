@@ -30,6 +30,10 @@ Options:
    -S <string> Define the output as a comma 
                separated list of strings.
                Ex: '70 ,80 ,90 ', 'G ,G ,C ,Em,Am,D '.
+   -N <string> Define recursion triggers and their
+               corresponding configuration files as
+               a comma separated list.
+               Ex: 'n,numbers.json,7,letters.json'
    -x          Set width and lines to terminal 
                size.
    -c <config> Set a custom config file location.
