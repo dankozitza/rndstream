@@ -87,6 +87,7 @@ namespace tools {
    // vectors.cpp
    istream& operator>>(istream& is, vector<string>& v);
    ostream& operator<<(ostream& os, vector<string>& v);
+   void chop(char separator, string& source, vector<string>& result);
    void vectors_test();
 
    // doubles.cpp

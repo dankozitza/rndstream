@@ -76,6 +76,8 @@ void define_config(jconfig& cfg, unsigned int t) {
    cfg.define_str("output_list", "none");
    cfg.define_str("output_str", "none");
    cfg.define_vstr("output_vstr", {"none"});
+   cfg.define_str("recursion_str", "");
+   cfg.define_vstr("recursion_vstr", {});
    cfg.define_int("verbose", 0);
    cfg.define_bool("handle_ctrl_c", 1);
    cfg.define_btn("r");
@@ -121,6 +123,7 @@ int main(int argc, char *argv[]) {
    opt.handle('o', cfg.m["output"].set,        cfg.m["output"].vstr);
    opt.handle('O', cfg.m["output_list"].set,   cfg.m["output_list"].vstr);
    opt.handle('S', cfg.m["output_str"].set,    cfg.m["output_str"].vstr);
+   opt.handle('N', cfg.m["recursion_str"].set, cfg.m["recursion_str"].vstr);
    opt.handle('t', cfg.m["delay"].set,         cfg.m["delay"].vstr);
    opt.handle('i', cfg.m["ignore"].set,        cfg.m["ignore"].vstr);
    opt.handle('v', cfg.m["verbose"].set,       cfg.m["verbose"].vstr);
@@ -193,50 +196,13 @@ int main(int argc, char *argv[]) {
       cfg.define_str("output", "none");
       cfg.define_str("output_list", "none");
 
-      string outarg = cfg.m["output_str"].vstr[0];
       cfg.m["output_vstr"].vstr.clear();
-      string result = "";
-      for (int i = 0; i < outarg.size(); i++) {
+      chop(',', cfg.m["output_str"].vstr[0], cfg.m["output_vstr"].vstr);
+   }
 
-         if (i+3 < outarg.size() && outarg.substr(i, 4) == "\\\\\\,") {
-            result += "\\,";
-            i += 3;
-            if (i+1 >= outarg.size()) {
-               cfg.m["output_vstr"].vstr.push_back(result);
-            }
-            continue;
-         }
-         
-         if (i+1 < outarg.size()) {
-         if (outarg[i] == '\\' && outarg[i+1] == ',') {
-
-            if (i-1 < 0 || outarg[i-1] != '\\') {
-
-               result += ',';
-               i++;
-               if (i+1 >= outarg.size()) {
-                  cfg.m["output_vstr"].vstr.push_back(result);
-               }
-               continue;
-            }
-            else if (i-1 >= 0 && outarg[i-1] == '\\') {
-               continue;
-            }
-         }}
-
-         if (outarg[i] == ',') {
-            cfg.m["output_vstr"].vstr.push_back(result);
-            result = "";
-            continue;
-         }
-
-         result += outarg[i];
-
-         if (i == outarg.size() - 1) {
-            cfg.m["output_vstr"].vstr.push_back(result);
-            result = "";
-         }
-      }
+   if (cfg.m["recursion_str"].set) {
+      cfg.m["recursion_vstr"].vstr.clear();
+      chop(',', cfg.m["recursion_str"].vstr[0], cfg.m["recursion_vstr"].vstr);
    }
 
    e = cfg.convert();
@@ -341,6 +307,9 @@ int main(int argc, char *argv[]) {
       "               " + fold(15, ws.ws_col, "Ex: '123abc', '1123', '\\/|-    '.") + "\n"
       "   -S <string> " + fold(15, ws.ws_col, "Define the output as a comma separated list of strings.") + "\n"
       "               " + fold(15, ws.ws_col, "Ex: '70 ,80 ,90 ', 'G ,G ,C ,Em,Am,D '.") + "\n"
+      "   -N <string> " + fold(15, ws.ws_col, "Define recursion triggers and their corresponding") + "\n"
+      "               " + fold(15, ws.ws_col, "configuration files as a comma separated list.") + "\n"
+      "               " + fold(15, ws.ws_col, "Ex: 'n,numbers.json,7,letters.json'") + "\n"
       "   -x          " + fold(15, ws.ws_col, "Set width and lines to terminal size.") + "\n"
       "   -c <config> " + fold(15, ws.ws_col, "Set a custom config file location. (set every time)") + "\n"
       "   -r          " + fold(15, ws.ws_col, "Re-set the seed using current time.") + "\n"
@@ -480,9 +449,11 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
       }
       if (wmax == 0) {wmax = 1;}
 
+      string outframe = "";
+
       for (unsigned int l = 0; l < lmax; l++) {
          if (!skipframe && v >= 2 && l == 0 && !nolines) {
-            out << "frame: " << frame << endl;
+            out << "Frame: " << frame << endl;
          }
 
          if (skipframe) {
@@ -491,18 +462,19 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
             continue;
          }
 
+         std::string outstr = "";
          for (unsigned int w = 0; w < wmax; w++) {
             if (output_is_range && cfg.get_str("output").size() == 2) {
-               out << char(rand() 
+               outstr += char(rand()
                      % (cfg.get_str("output")[1]-cfg.get_str("output")[0]+1)
                      + cfg.get_str("output")[0]);
             }
             else if (output_is_list && cfg.get_str("output_list").size() > 0) {
-               out << cfg.get_str("output_list")[
+               outstr += cfg.get_str("output_list")[
                         rand() % cfg.get_str("output_list").size()];
             }
             else if (cfg.get_vstr("output_vstr").size() > 0) {
-               out << cfg.get_vstr("output_vstr")[
+               outstr += cfg.get_vstr("output_vstr")[
                         rand() % cfg.get_vstr("output_vstr").size()];
             }
             else {
@@ -510,7 +482,15 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
                return;
             }
          }
-         if (!nolines) {out << endl;}
+
+         if (outstr.size() != 0) {
+            out << outstr.c_str();
+            outframe += outstr;
+         }
+
+         if (!nolines) {
+            out << endl;
+         }
 
          if (l == lmax - 1) {
             out.flush();
@@ -523,6 +503,42 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
          }
          if (fmax != 0 && frame > fmax) {break;}
       }
+
+      // check for matching string in recursion_vstr
+      if (!skipframe && cfg.m["recursion_vstr"].vstr.size() != 0) {
+         for (size_t i = 0; i < cfg.m["recursion_vstr"].vstr.size(); i += 2) {
+
+            if (cfg.m["recursion_vstr"].vstr[i] == outframe) {
+
+               if (v >= 2 && !nolines) {
+                  out << "Loading: " << cfg.m["recursion_vstr"].vstr[i + 1];
+                  out << endl;
+               }
+
+               cfg.set("ignore", lframe);
+               cfg.save();
+
+               jconfig cfgn("");
+               cfgn.set_file_location(cfg.m["recursion_vstr"].vstr[i + 1]);
+               define_config(cfgn, 0);
+               Error e = cfgn.load();
+               if (e != NULL) {
+                  cout << cfgn.get_str("pn") << ": Error: jconfig file could not be loaded: ";
+                  cout << e << endl;
+                  exit(1);
+               }
+               e = cfgn.convert();
+               if (e != NULL) {
+                  cout << cfgn.get_str("pn") << ": Error: jconfig failed to convert: ";
+                  cout << e << endl;
+                  exit(1);
+               }
+
+               return cmd_stream(argv, out, cfgn);
+            }
+         }
+      }
+
       if (fmax != 0 && frame > fmax) {break;}
    }
 

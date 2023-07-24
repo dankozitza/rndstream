@@ -39,7 +39,7 @@ ostream& tools::operator<<(ostream& os, vector<string>& v) {
    if (!v.empty()) {
       for (int i = 0; i < v.size() - 1; ++i)
          os << v[i] << ", ";
-      
+
       cout << v[v.size() - 1];
    }
    os << "}";
@@ -60,4 +60,52 @@ void tools::vectors_test() {
    cin >> v1;
    cout << "vector size: '" << v1.size() << "'\n";
    cout << "got vector: '" << v1 << "'\n\n";
+}
+
+void tools::chop(char separator, string& source, vector<string>& result) {
+
+   string value = "";
+   for (int i = 0; i < source.size(); i++) {
+
+      if (i+3 < source.size() && source.substr(i, 4) == string("\\\\\\") + separator) {
+         value += "\\";
+         value += separator;
+         i += 3;
+         if (i+1 >= source.size()) {
+            result.push_back(value);
+         }
+         continue;
+      }
+
+      if (i+1 < source.size()) {
+      if (source[i] == '\\' && source[i+1] == separator) {
+
+         if (i-1 < 0 || source[i-1] != '\\') {
+
+            value += separator;
+            i++;
+            if (i+1 >= source.size()) {
+               result.push_back(value);
+            }
+            continue;
+         }
+         else if (i-1 >= 0 && source[i-1] == '\\') {
+            continue;
+         }
+      }}
+
+      if (source[i] == separator) {
+         result.push_back(value);
+         value = "";
+         continue;
+      }
+
+      value += source[i];
+
+      if (i == source.size() - 1) {
+         result.push_back(value);
+         value = "";
+      }
+   }
+   return;
 }
