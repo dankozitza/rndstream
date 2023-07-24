@@ -15,15 +15,15 @@
 #include <stdarg.h>
 #include <vector>
 
-#ifdef __ANDROID__
+//#ifdef __ANDROID__
    #include <json/json.h>
    #include <json/value.h>
    #include <json/reader.h>
-#else
-   #include <jsoncpp/json/json.h>
-   #include <jsoncpp/json/value.h>
-   #include <jsoncpp/json/reader.h>
-#endif
+//#else // debian
+//   #include <jsoncpp/json/json.h>
+//   #include <jsoncpp/json/value.h>
+//   #include <jsoncpp/json/reader.h>
+//#endif
 
 using namespace std;
 
