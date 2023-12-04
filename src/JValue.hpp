@@ -75,8 +75,8 @@ class JValue {
       bool isString();
       bool isBool();
 
-      JValue get_object();
-      JValue get_array();
+      map<string, JValue> get_object();
+      vector<JValue>      get_array();
 
       long int     get_int();
       unsigned int get_uint();
@@ -84,8 +84,8 @@ class JValue {
       string       get_str();
       bool         get_bool();
 
-      JValue asObject();
-      JValue asArray();
+      map<string, JValue> asObject();
+      vector<JValue>      asArray();
 
       long int     asInt();
       unsigned int asUInt();

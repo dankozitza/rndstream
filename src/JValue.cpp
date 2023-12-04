@@ -383,19 +383,17 @@ bool JValue::asBool() {
    return get_bool();
 }
 
-JValue JValue::get_object() {
-   JValue rval;
-   return rval;
+map<string, JValue> JValue::get_object() {
+   return data.object_val;
 }
-JValue JValue::asObject() {
+map<string, JValue> JValue::asObject() {
    return get_object();
 }
 
-JValue JValue::get_array() {
-   JValue rval;
-   return rval;
+vector<JValue> JValue::get_array() {
+   return data.array_val;
 }
-JValue JValue::asArray() {
+vector<JValue> JValue::asArray() {
    return get_array();
 }
 
