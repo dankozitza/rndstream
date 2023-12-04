@@ -1,4 +1,4 @@
-// 
+//
 // JValue.hpp
 //
 // Created by Daniel Kozitza
