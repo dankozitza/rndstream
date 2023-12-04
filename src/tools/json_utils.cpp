@@ -6,7 +6,7 @@
 
 #include "../tools.hpp"
 
-tools::Error tools::load_json_value_from_file(Json::Value& jv, string fname) {
+tools::Error tools::load_json_value_from_file(JValue& jv, string fname) {
 
    tools::Error e = NULL;
    string filetxt;
@@ -24,13 +24,12 @@ tools::Error tools::load_json_value_from_file(Json::Value& jv, string fname) {
    return NULL;
 }
 
-tools::Error tools::load_json_value_from_string(Json::Value& jv, const string& s) {
+tools::Error tools::load_json_value_from_string(JValue& jv, const string& s) {
 
-   Json::Reader reader;
-   if (reader.parse(s, jv, true)) {return NULL; }
+   //Json::Reader reader;
+   //if (reader.parse(s, jv, true)) {return NULL; }
 
-   return errorf(
-         "Json::Reader::parse returned false! "
-         "tools::load_json_value_from_string: Error parsing string '%s'.",
-         s.c_str());
+   Error e = NULL;
+   e = jv.load_value(s);
+   return e;
 }

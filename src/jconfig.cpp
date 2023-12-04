@@ -209,7 +209,7 @@ bool jconfig::is_set(string key) {
 
 tools::Error jconfig::convert() {
    tools::Error e = NULL;
-   Json::Value jv;
+   JValue jv;
 
    for (mit = m.begin(); mit != m.end(); mit++) {
 
@@ -238,8 +238,10 @@ tools::Error jconfig::convert() {
       }
 
       for (int i = 0; i < mit->second.vstr.size(); i++) {
-         e = load_json_value_from_string(jv, mit->second.vstr[i]);
+         //e = load_json_value_from_string(jv, mit->second.vstr[i]);
+         e = jv.load_value(mit->second.vstr[i]);
          if (e != NULL) {return e;}
+
          if (mit->second.type == "int") {
             if (!jv.isInt()) {return "jconfig: Wrong type. Need int.";}
             mit->second.vint[i] = jv.asInt();
@@ -249,7 +251,9 @@ tools::Error jconfig::convert() {
             mit->second.vuint[i] = jv.asUInt();
          }
          if (mit->second.type == "double") {
-            if (!jv.isDouble()) {return "jconfig: Wrong type. Need double.";}
+            if (!jv.isDouble() && !jv.isInt()) {
+               return "jconfig: Wrong type. Need double.";
+            }
             mit->second.vdbl[i] = jv.asDouble();
          }
       }
@@ -260,20 +264,24 @@ tools::Error jconfig::convert() {
 
 tools::Error jconfig::load() {
    tools::Error e = NULL;
-   Json::Value rjv;
-   e = tools::load_json_value_from_file(rjv, file_path);
+   JValue rjv;
+   //e = tools::load_json_value_from_file(rjv, file_path);
+   //if (e != NULL) {return e;}
+   string json_str = "";
+   e = tools::read_file(file_path, json_str);
+
+   if (e != NULL) {return e;}
+
+   e = rjv.load_value(json_str);
    if (e != NULL) {return e;}
 
    if (rjv.isObject()) {
-      Json::Value::iterator rjvit = rjv.begin();
-      for (; rjvit != rjv.end(); rjvit++) {
+      map<string, JValue>::iterator rjvit = rjv.data.object_val.begin();
+      for (; rjvit != rjv.data.object_val.end(); rjvit++) {
 
-         if (!rjvit.key().isString()) {
-            return error("jconfig: Config key is not a string.");
-         }
-         string key = rjvit.key().asString();
+         string key = rjvit->first;
 
-         Json::Value elmntv = *rjvit;
+         JValue elmntv(rjvit->second);
          if (!elmntv.isArray()) {
             if (elmntv.isBool()) {
                m[key].bval = elmntv.asBool();

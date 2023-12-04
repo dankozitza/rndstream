@@ -67,11 +67,8 @@ Files:
 
 Dependencies:
 
-    Linux:  jsoncpp
-    Debian: libjsoncpp-dev
-
-    For debian you will also have to modify tools.hpp
-    to use the proper #include directive.
+   g++
+   make
 
 Build:
 

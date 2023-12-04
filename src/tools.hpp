@@ -14,16 +14,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <vector>
-
-//#ifdef __ANDROID__
-   #include <json/json.h>
-   #include <json/value.h>
-   #include <json/reader.h>
-//#else // debian
-//   #include <jsoncpp/json/json.h>
-//   #include <jsoncpp/json/value.h>
-//   #include <jsoncpp/json/reader.h>
-//#endif
+#include "JValue.hpp"
 
 using namespace std;
 
@@ -57,20 +48,8 @@ namespace tools {
 
    // strings.cpp
    string fold(int indent_width, int max_line_width, string s);
-   //bool matches(string s, string str_re);
-   //bool matches(string results[], string s, string str_re);
-   //bool matches(vector<string>& results, string s, string str_re);
-   //bool matches(smatch& sm, string s, string str_re);
-   //bool replace_all(
-   //      string &s,
-   //      string str_re,
-   //      string fmt,
-   //      regex_constants::match_flag_type mf = regex_constants::match_default);
-   //bool find_in_file(string str_re, string fname);
-   //void test_matches();
-   //void test_replace();
 
-   // pcre2.cpp
+   // pcre_utils.cpp
    bool pmatches(string s, string str_re);
    bool pmatches(string results[], string s, string str_re);
    bool pmatches(vector<string> &results, string s, string str_re);
@@ -94,8 +73,8 @@ namespace tools {
    bool equal(double const &d1, double const &d2, double epsilon = 0.0001);
 
    // json_utils.cpp
-   Error load_json_value_from_string(Json::Value& jv, const string& s);
-   Error load_json_value_from_file(Json::Value& jv, string fname);
+   Error load_json_value_from_string(JValue& jv, const string& s);
+   Error load_json_value_from_file(JValue& jv, string fname);
 
    // rand_utils.cpp
    unsigned int srandtp();

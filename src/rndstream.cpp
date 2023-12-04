@@ -142,18 +142,19 @@ int main(int argc, char *argv[]) {
 
    e = cfg.load();
    if (e != NULL) {
+      cout << cfg.get_str("pn") << ": " << e << "\n";
       cout << cfg.get_str("pn") << ": Making jconfig file '" << cfg.file_path;
       cout << "'.\n";
       e = cfg.save();
       if (e != NULL) {
-         cout << cfg.get_str("pn") << ": Error: " << e << endl;
+         cout << cfg.get_str("pn") << ": " << e << endl;
          return 1;
       }
    }
 
    e = opt.evaluate(Argv);
    if (e != NULL) {
-      cout << cfg.get_str("pn") << ": Error: " << e << endl;
+      cout << cfg.get_str("pn") << ": " << e << endl;
       return 1;
    }
 
@@ -171,7 +172,7 @@ int main(int argc, char *argv[]) {
          cout << "'.\n";
          e = cfg.save();
          if (e != NULL) {
-            cout << cfg.get_str("pn") << ": Error: " << e << endl;
+            cout << cfg.get_str("pn") << ": " << e << endl;
             return 1;
          }
       }
@@ -179,7 +180,7 @@ int main(int argc, char *argv[]) {
       opt.clear();
       e = opt.evaluate(Argv);
       if (e != NULL) {
-         cout << cfg.get_str("pn") << ": Error: " << e << endl;
+         cout << cfg.get_str("pn") << ": " << e << endl;
          return 1;
       }
    }

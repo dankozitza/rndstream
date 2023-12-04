@@ -1,10 +1,11 @@
 # 28ece805b8da380ef42334e658c4f4bf
 # Generated with vfnmkmc by the mc program.
-PREFIX=/usr/local
-#CFLAGS=-O$(O) 
+PREFIX=/usr
+#CFLAGS= 
+CXX=g++
 O=2
-LFLAGS= -l jsoncpp
-OBJS=objs/commands.o objs/jconfig.o objs/options.o objs/rndstream.o objs/radix.o objs/doubles.o objs/json_utils.o objs/pcre_utils.o objs/rand_utils.o objs/strings.o objs/system.o objs/utils.o objs/vectors.o
+LFLAGS=
+OBJS=objs/JValue.o objs/commands.o objs/jconfig.o objs/options.o objs/rndstream.o objs/radix.o objs/doubles.o objs/pcre_utils.o objs/rand_utils.o objs/strings.o objs/system.o objs/utils.o objs/vectors.o
 
 
 .PHONY: all
@@ -14,6 +15,9 @@ all: objs rndstream
 	@ echo "    LINK ./rndstream"
 	@ $(CXX) $(OBJS) -o "./rndstream" $(LFLAGS)
 
+objs/JValue.o: src/JValue.cpp src/JValue.hpp
+	@ echo "    CXX  src/JValue.cpp"
+	@ $(CXX) $(CFLAGS) -c "src/JValue.cpp" -o $@
 objs/commands.o: src/commands.cpp src/commands.hpp src/tools.hpp
 	@ echo "    CXX  src/commands.cpp"
 	@ $(CXX) $(CFLAGS) -c "src/commands.cpp" -o $@

@@ -55,26 +55,12 @@ bool tools::pmatches(
          return false;
       }
    } catch (std::regex_error& e) {
-     // Syntax error in the regular expression
-     cout << "tools::pcre_utils: Syntax error in regular expression '"
+     cout << "tools::pcre_utils: Syntax error '"
           << str_re.c_str() << "': " << e.what() << endl;
      return false;
    }
 
-   // pcre++ code
-   //pcrepp::something re(str_re);
-
-   //if (re.search(s) == true) {
-   //   if (get_res && re.matches() > 0) {
-   //      results.resize(re.matches() + 1);
-   //      results[0] = s;
-   //      for (int i = 0; i < re.matches(); i++) {
-   //         results[i+1] = re[i];
-   //      }
-   //   }
-   //   return true;
-   //}
-   //return false;
+   return false;
 }
 
 void tools::test_pmatches() {
