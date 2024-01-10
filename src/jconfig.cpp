@@ -343,7 +343,11 @@ tools::Error jconfig::save() {
    return tools::write_file(file_path, fc);
 }
 
-tools::Error jconfig::save_tmp() {
+tools::Error jconfig::save_tmp(const char * name) {
+   tmp_file_path = string(JCONFIG_TMP_PATH) +
+                   string(name) + "_" +
+                   string(JCONFIG_TMP_FILENAME);
+
    tmp_operation = true;
    string fc = getJSON();
    Error e = tools::write_file(tmp_file_path, fc);
@@ -351,7 +355,12 @@ tools::Error jconfig::save_tmp() {
    return e;
 }
 
-tools::Error jconfig::load_tmp() {
+tools::Error jconfig::load_tmp(const char * name) {
+
+   tmp_file_path = string(JCONFIG_TMP_PATH) +
+                   string(name) + "_" +
+                   string(JCONFIG_TMP_FILENAME);
+
    tmp_operation = true;
    tools::Error e = NULL;
    string real_file_path = file_path;

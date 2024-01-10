@@ -62,6 +62,7 @@ void cmd_gen(vector<string>& argv, ostream& out, jconfig& cfg);
 void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg);
 void cmd_file(vector<string>& argv, ostream& file, jconfig& cfg);
 void cmd_env(vector<string>& argv, ostream& out, jconfig& cfg);
+void cmd_purge(vector<string>& argv, ostream& out, jconfig& cfg);
 
 void define_config(jconfig& cfg, unsigned int t) {
    cfg.define_uint("seed",   t);
@@ -80,6 +81,7 @@ void define_config(jconfig& cfg, unsigned int t) {
    cfg.define_vstr("recursion_vstr", {});
    cfg.define_int("verbose", 0);
    cfg.define_bool("handle_ctrl_c", 1);
+   cfg.define_bool("delete_temporary_files", 1);
    cfg.define_btn("r");
    cfg.define_btn("R");
    cfg.define_btn("x");
@@ -88,10 +90,12 @@ void define_config(jconfig& cfg, unsigned int t) {
    cfg.define_btn("n");
    cfg.define_btn("b");
    cfg.define_str("pn", "rndstream");
+   cfg.define_str("instance", "NULL");
    return;
 }
 
 unsigned int lframe = 1;
+char instance[] = "..........\0";
 
 int main(int argc, char *argv[]) {
    vector<string> Argv(0);
@@ -128,6 +132,9 @@ int main(int argc, char *argv[]) {
    opt.handle('i', cfg.m["ignore"].set,        cfg.m["ignore"].vstr);
    opt.handle('v', cfg.m["verbose"].set,       cfg.m["verbose"].vstr);
    opt.handle('C', cfg.m["handle_ctrl_c"].set, cfg.m["handle_ctrl_c"].vstr);
+   opt.handle('D', cfg.m["delete_temporary_files"].set,
+                   cfg.m["delete_temporary_files"].vstr);
+   opt.handle('i', cfg.m["instance"].set,      cfg.m["instance"].vstr);
    opt.handle('r', cfg.m["r"].set);
    opt.handle('R', cfg.m["R"].set);
    opt.handle('x', cfg.m["x"].set);
@@ -143,7 +150,7 @@ int main(int argc, char *argv[]) {
    e = cfg.load();
    if (e != NULL) {
       cout << cfg.get_str("pn") << ": " << e << "\n";
-      cout << cfg.get_str("pn") << ": Making jconfig file '" << cfg.file_path;
+      cout << cfg.get_str("pn") << ": Making configuration file '" << cfg.file_path;
       cout << "'.\n";
       e = cfg.save();
       if (e != NULL) {
@@ -167,12 +174,16 @@ int main(int argc, char *argv[]) {
 
       cfg.file_path = cfg.get_str("config");
       e = cfg.load();
-      if (e != NULL) {
-         cout << cfg.get_str("pn") << ": Making jconfig file '" << cfg.file_path;
-         cout << "'.\n";
+      if (e != NULL && !cfg.get_btn("d")) {
+         if (cfg.get_int("verbose") > 0) {
+            cout << cfg.get_str("pn") << ": " << e << ": Making jconfig file '" << cfg.file_path;
+            cout << "'.\n";
+         }
          e = cfg.save();
          if (e != NULL) {
-            cout << cfg.get_str("pn") << ": " << e << endl;
+            if (cfg.get_int("verbose") > 0) {
+               cout << cfg.get_str("pn") << ": " << e << endl;
+            }
             return 1;
          }
       }
@@ -244,6 +255,24 @@ int main(int argc, char *argv[]) {
       }
    }
 
+   if (!cfg.m["instance"].set) {
+      srand(t - 910);
+      size_t namesize = rand() % 5 + 6;
+      cfg.m["instance"].vstr[0].resize(namesize);
+      for (size_t i = 0; i < namesize; i++) {
+         cfg.m["instance"].vstr[0][i] = rand() % ('z' - 'a' + 1) + 'a';
+         instance[i] = cfg.m["instance"].vstr[0][i];
+
+         if (i + 1 == namesize) {
+            instance[i+1] = '\0';
+         }
+      }
+
+      if (cfg.get_int("verbose") > 1) {
+         cout << "Instance: " << instance << endl;
+      }
+   }
+
    if (cfg.m["print"].set || cfg.get_uint("print") != 0) {
       if (cfg.get_uint("print") != 0) {
          cfg.set("frames", cfg.get_uint("ignore") + cfg.get_uint("print"));
@@ -272,7 +301,6 @@ int main(int argc, char *argv[]) {
    }
 
    if (cfg.get_btn("x")) {cfg.define_bool("tmp_x_set", true);}
-
 
    if (Argv.size() == 0) {
       cmd = "gen";
@@ -311,7 +339,8 @@ int main(int argc, char *argv[]) {
       "   -r          " + fold(15, ws.ws_col, "Re-set the seed using current time.") + "\n"
       "   -R          " + fold(15, ws.ws_col, "Re-set the seed using current seed.") + "\n"
       "   -d          " + fold(15, ws.ws_col, "Do not overwrite the config file.") + "\n"
-      "   -C          " + fold(15, ws.ws_col, "Exit rather than pause on Ctrl+c signal. (toggle)") + "\n"
+      "   -C          " + fold(15, ws.ws_col, "Exit rather than pause on Ctrl+c signal. (toggle) (default pause)") + "\n"
+      "   -D          " + fold(15, ws.ws_col, "Delete temporary files. (toggle) (default true)") + "\n"
       "   -n          " + fold(15, ws.ws_col, "Go to the next frame.") + "\n"
       "   -b          " + fold(15, ws.ws_col, "Go to the last frame.") + "\n");
 
@@ -325,6 +354,11 @@ int main(int argc, char *argv[]) {
       cmd_env,
       "Display the configuration file.",
       "env");
+   cmds.handle(
+      "purge",
+      cmd_purge,
+      "Delete temporary files.",
+      "purge");
 
    cmds.run(cmd, Argv, cout, cfg);
 
@@ -412,7 +446,7 @@ void cmd_file(vector<string>& argv, ostream& file, jconfig& cfg) {
 void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
 
    Error e = NULL;
-   e = cfg.save_tmp();
+   e = cfg.save_tmp(instance);
    if (e != NULL) {
       cout << cfg.get_str("pn") << ": Error: " << e << endl;
       exit(1);
@@ -455,7 +489,7 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
       string outframe = "";
 
       for (unsigned int l = 0; l < lmax; l++) {
-         if (!skipframe && v >= 2 && l == 0 && !nolines) {
+         if (!skipframe && v >= 3 && l == 0 && !nolines) {
             out << "Frame: " << frame << endl;
          }
 
@@ -545,11 +579,22 @@ void cmd_stream(vector<string>& argv, ostream& out, jconfig& cfg) {
       if (fmax != 0 && frame > fmax) {break;}
    }
 
+   if (cfg.get_bool("delete_temporary_files")) {
+      system(string("rm " + cfg.tmp_file_path + " &").c_str());
+   }
+
    return;
 }
 
 void cmd_env(vector<string>& argv, ostream& out, jconfig& cfg) {
    cout << cfg.file_path << ":\n" << cfg.getJSON() << "\n";
+   return;
+}
+
+void cmd_purge(vector<string>& cmdv, ostream& out, jconfig& cfg) {
+   string cmd = "rm " + string(JCONFIG_TMP_PATH) + "*" + string(JCONFIG_TMP_FILENAME);
+   cout << cfg.get_str("pn") << ": system call: " << cmd << endl;
+   system(cmd.c_str());
    return;
 }
 
@@ -562,7 +607,7 @@ void callback_func_prompt(int sig) {
 
    jconfig cfg("");
    define_config(cfg, 0);
-   Error e = cfg.load_tmp();
+   Error e = cfg.load_tmp(instance);
    if (e != NULL) {
       cout << cfg.get_str("pn") << ": Error: jconfig tmp file could not be loaded: ";
       cout << e << endl;
@@ -592,14 +637,15 @@ void callback_func_prompt(int sig) {
    if (cfg.get_str("config") != cfg.file_path) {
       cfg.set_file_location(cfg.get_str("config"));
    }
-   
+
    if (cfg.get_uint("lines") == 0) {
       cout << endl;
    }
    cout << "\n                     --- paused ---\n";
 
    if (cfg.get_int("verbose") > 0) {
-      cout << "\n- (last frame: " << lframe;
+      cout << "\n- (instance: " << cfg.get_str("instance").c_str();
+      cout << ") (last frame: " << lframe;
       cout << ") (frame size: " << width;
       cout << "x"               << lines;
       cout << ") (delay: " << cfg.get_dbl("delay") << ")";
@@ -611,11 +657,17 @@ void callback_func_prompt(int sig) {
       if (o < 97) {o += 32;}
 
       if (o == 'e' || o == 'q' || o == 'x' || o == 'k') {
+         if (cfg.get_bool("delete_temporary_files")) {
+            system(string("rm " + cfg.tmp_file_path).c_str());
+         }
          exit(0);
       }
       if (o == 's' || o == 'o') {
          cfg.set("ignore", lframe);
          cfg.save();
+         if (cfg.get_bool("delete_temporary_files")) {
+            system(string("rm " + cfg.tmp_file_path).c_str());
+         }
          exit(0);
       }
       if (o == 'u' || o == 'r') {

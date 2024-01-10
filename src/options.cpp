@@ -123,15 +123,17 @@ tools::Error options::evaluate(vector<string>& arguments) {
          }
       }
    }
-   if (i == 0)
+   if (i == 0) {
       return NULL;
+   }
    // add remaining arguments in case -- option was given
    for (; i < arguments.size(); ++i) {
       new_arguments.push_back(arguments[i]);
    }
    arguments.resize(0);
-   for (int m = 0; m < new_arguments.size(); ++m)
+   for (int m = 0; m < new_arguments.size(); m++) {
       arguments.push_back(new_arguments[m]);
+   }
    return NULL;
 }
 

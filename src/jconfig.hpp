@@ -15,7 +15,7 @@
    #define JCONFIG_TMP_PATH "/data/data/com.termux/files/usr/tmp/"
 #endif
 
-#define JCONFIG_TMP_FILENAME "jconfig_tmp_config.json"
+#define JCONFIG_TMP_FILENAME "DKM_TEMPORARY.json"
 
 #include <unordered_map>
 #include <vector>
@@ -95,8 +95,8 @@ class jconfig {
       tools::Error load();
       tools::Error save();
 
-      tools::Error load_tmp();
-      tools::Error save_tmp();
+      tools::Error load_tmp(const char * name);
+      tools::Error save_tmp(const char * name);
 
       string getJSON();
 };

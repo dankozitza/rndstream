@@ -110,7 +110,8 @@ JValue::Error JValue::load_value_r(string& json_string, size_t begin, size_t end
                      }
                   }
                   else {
-                     return "JValue::load_value: json value is not a number or boolean.";
+                     string msg = string("JValue::load_value: json value is not a number or boolean '") + json_string.substr(i, end - x + 1) + string("'.");
+                     return msg.c_str();
                   }
                }
             }
